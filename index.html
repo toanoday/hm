@@ -1,0 +1,3827 @@
+<!DOCTYPE html>
+<html lang="vi" class="">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trình Quản lý Hóa đơn Cốc</title>
+    <link rel="shortcut icon" href="https://img.toan.top/favicon.png" type="image/x-icon" />
+    <meta name="description"
+        content="Ứng dụng quản lý hóa đơn dễ sử dụng, hỗ trợ khách hàng, sản phẩm, báo cáo và in hóa đơn chuyên nghiệp." />
+    <meta property="og:title" content="HÓA ĐƠN THÔNG MINH" />
+    <meta property="og:description" content="Ứng dụng quản lý hóa đơn đơn giản, nhanh chóng và tiện lợi." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://img.toan.top/thumbnail.jpg" />
+    <!-- ảnh đại diện -->
+    <meta property="og:url" content="https://invoice.toan.top/" />
+    <!-- đường dẫn thật -->
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <!-- SheetJS (xlsx) for Excel Export & Import -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- html2canvas for Image Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- QR Code Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- Chart.js for Tiny Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --background: #f8fafc;
+            /* slate-50 */
+            --foreground: #020817;
+            /* slate-950 */
+            --card: #ffffff;
+            /* white */
+            --card-foreground: #020817;
+            --popover: #ffffff;
+            --popover-foreground: #020817;
+            --primary: #0ea5e9;
+            /* sky-500 */
+            --primary-foreground: #f8fafc;
+            /* slate-50 */
+            --secondary: #f1f5f9;
+            /* slate-100 */
+            --secondary-foreground: #0f172a;
+            /* slate-900 */
+            --muted: #f1f5f9;
+            --muted-foreground: #64748b;
+            /* slate-500 */
+            --accent: #e0f2fe;
+            /* sky-100 */
+            --accent-foreground: #0c4a6e;
+            /* sky-900 */
+            --border: #e2e8f0;
+            /* slate-200 */
+            --input: #ffffff;
+            --ring: #0ea5e9;
+        }
+
+        .dark {
+            --background: #0f172a;
+            /* slate-900 */
+            --foreground: #f8fafc;
+            /* slate-50 */
+            --card: #1e293b;
+            /* slate-800 */
+            --card-foreground: #f8fafc;
+            --popover: #1e293b;
+            /* slate-800 - UPDATED for consistency */
+            --popover-foreground: #f8fafc;
+            --primary: #38bdf8;
+            /* sky-400 */
+            --primary-foreground: #020817;
+            --secondary: #1e293b;
+            --secondary-foreground: #f8fafc;
+            --muted: #334155;
+            /* slate-700 */
+            --muted-foreground: #94a3b8;
+            /* slate-400 */
+            --accent: #334155;
+            --accent-foreground: #f8fafc;
+            --border: #475569;
+            /* UPDATED for more subtlety */
+            --input: #334155;
+            /* slate-700 */
+            --ring: #38bdf8;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: var(--background);
+            color: var(--foreground);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #a8a29e;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #78716c;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-overlay.open {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        .modal-content.open {
+            animation: fadeInUp 0.3s ease-out forwards;
+        }
+
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            /* nền tối mờ */
+            backdrop-filter: blur(2px);
+            /* làm mờ nền phía sau */
+            -webkit-backdrop-filter: blur(4px);
+            /* Safari support */
+            transition: opacity 0.3s ease;
+        }
+
+        .dark .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.6);
+            /* nền tối hơn khi ở dark mode */
+        }
+
+        .modal-content {
+            background-color: var(--card);
+            color: var(--card-foreground);
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 0.5px solid var(--border);
+        }
+
+        /* Hide number input arrows */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* General style adjustments */
+        .nav-link.active {
+            background-color: var(--accent);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        nav.bg-card {
+            background-color: var(--card);
+            /* luôn có nền */
+        }
+
+        .filter-btn {
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background-color: var(--primary) !important;
+            color: var(--primary-foreground) !important;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1),
+                0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+
+        /* Input styling */
+        input,
+        select,
+        textarea {
+            background-color: var(--input) !important;
+            border-color: var(--border) !important;
+            transition: all 0.2s;
+        }
+
+        .dark input,
+        .dark select,
+        .dark textarea {
+            color: var(--foreground);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
+            outline: none;
+        }
+
+        /* Styles for the invoice to be exported as an image */
+        .invoice-export-template {
+            width: 800px;
+            padding: 40px;
+            background: white;
+            color: black;
+            font-family: "Inter", sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .invoice-export-template table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .invoice-export-template th {
+            padding: 12px 8px;
+            text-align: center;
+            color: #64748b;
+            /* slate-500 */
+            font-size: 12px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #cbd5e1;
+            /* slate-300 */
+            font-weight: 600;
+        }
+
+        .invoice-export-template td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+            /* slate-100 */
+        }
+
+        .invoice-export-template tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .invoice-export-template .text-left {
+            text-align: left;
+        }
+
+        .invoice-export-template .text-right {
+            text-align: right;
+        }
+
+        .invoice-export-template .font-bold {
+            font-weight: bold;
+        }
+
+        .invoice-export-template .no-border {
+            border: none;
+        }
+
+        .invoice-export-template .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 2rem;
+        }
+
+        .invoice-export-template .info-item {
+            display: flex;
+            white-space: nowrap;
+        }
+
+        .invoice-export-template .info-item label {
+            min-width: 120px;
+            font-weight: normal;
+        }
+
+        /* Toast Notification Styles */
+        #toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+                0 4px 6px -4px rgb(0 0 0 / 0.1);
+            background-color: var(--card);
+            color: var(--card-foreground);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease-in-out;
+            border-left: 4px solid;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-color: #22c55e;
+        }
+
+        .toast.error {
+            border-color: #ef4444;
+        }
+
+        .toast-icon {
+            margin-right: 0.75rem;
+        }
+
+        .toast-icon .success {
+            color: #22c55e;
+        }
+
+        .toast-icon .error {
+            color: #ef4444;
+        }
+
+        /* ===== LIGHT MODE ===== */
+        .cancel-btn {
+            background-color: #fee2e2;
+            /* red-100 */
+            color: #b91c1c;
+            /* red-700 */
+            border: 1px solid #fca5a5;
+            /* red-300 */
+            transition: all 0.2s ease-in-out;
+        }
+
+        .cancel-btn:hover {
+            background-color: #fecaca;
+            /* red-200 */
+            color: #991b1b;
+            /* red-800 */
+        }
+
+        /* ===== DARK MODE ===== */
+        html.dark .cancel-btn,
+        body.dark .cancel-btn {
+            background-color: rgba(185, 28, 28, 0.15);
+            /* red-700 @ 15% */
+            color: #fecaca;
+            /* red-200 */
+            border-color: #f87171;
+            /* red-400 */
+        }
+
+        html.dark .cancel-btn:hover,
+        body.dark .cancel-btn:hover {
+            background-color: rgba(239, 68, 68, 0.25);
+            /* red-500 */
+            color: #fca5a5;
+            /* red-300 */
+        }
+
+        .dark .thin-border {
+            border-width: 0.1px;
+        }
+
+        .dark .border.bg-card {
+            border-width: 0.1px;
+        }
+
+        .dark .border {
+            --border: #475569;
+            /* màu nhạt hơn cho nét mảnh */
+        }
+
+        #customerSearchResults {
+            background-color: var(--popover);
+            /* đã được định nghĩa */
+            color: var(--popover-foreground);
+        }
+
+        .product-search-results {
+            background-color: var(--popover);
+            color: var(--popover-foreground);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hidden containers for generating images -->
+    <div id="invoice-export-container" class="fixed top-0 left-[-9999px] z-0"></div>
+    <div id="qrcode-container" class="fixed top-0 left-[-9999px] z-0"></div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="fixed inset-0 bg-background/90 z-[100] flex items-center justify-center hidden">
+        <div class="text-center">
+            <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p id="loading-text" class="mt-4 text-lg font-semibold text-muted-foreground">
+                Đang tải...
+            </p>
+        </div>
+    </div>
+
+    <!-- Login Page -->
+    <div id="login-page" class="min-h-screen flex items-center justify-center bg-background hidden p-4">
+        <div class="bg-card p-8 rounded-xl shadow-lg text-center max-w-sm w-full border border-border">
+            <h1 class="text-2xl font-bold mb-2 text-primary">Quản lý Hóa đơn</h1>
+            <p class="text-muted-foreground mb-6">Vui lòng đăng nhập để tiếp tục</p>
+            <!-- UPDATED: Google Login Button -->
+            <button id="login-button"
+                class="w-full bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 font-bold py-3 px-4 rounded-lg flex items-center justify-center transition-colors border border-slate-300 dark:border-slate-600 shadow-sm">
+                <svg class="mr-2" width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z">
+                    </path>
+                    <path fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z">
+                    </path>
+                    <path fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z">
+                    </path>
+                    <path fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z">
+                    </path>
+                    <path fill="none" d="M1 1h22v22H1z"></path>
+                </svg>
+                Đăng nhập với Google
+            </button>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app-container" class="hidden">
+        <!-- Sidebar / Navigation -->
+        <nav class="bg-card shadow-md fixed w-full z-30 top-0 border-b border-border">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 text-primary flex items-center gap-2">
+                            <img src="https://img.toan.top/favicon.png" alt="Logo"
+                                class="h-8 w-8 rounded-md object-contain" />
+                            <span class="font-bold text-xl hidden sm:inline">HÓA ĐƠN THÔNG MINH</span>
+                        </div>
+                        <div class="hidden md:block">
+                            <div id="desktop-nav-links" class="ml-10 flex items-baseline space-x-1">
+                                <a href="#" class="nav-link px-3 py-2 rounded-md text-sm font-medium"
+                                    data-page="dashboard-page">Bảng điều khiển</a>
+                                <a href="#" class="nav-link px-3 py-2 rounded-md text-sm font-medium"
+                                    data-page="customers-page">Khách hàng</a>
+                                <a href="#" class="nav-link px-3 py-2 rounded-md text-sm font-medium"
+                                    data-page="products-page">Sản phẩm</a>
+                                <a href="#" class="nav-link px-3 py-2 rounded-md text-sm font-medium"
+                                    data-page="invoices-page">Hóa đơn</a>
+                                <a href="#" class="nav-link px-3 py-2 rounded-md text-sm font-medium"
+                                    data-page="reports-page">Báo cáo</a>
+                                <a href="#" class="nav-link px-3 py-2 rounded-md text-sm font-medium"
+                                    data-page="settings-page">Cài đặt</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hidden md:flex items-center gap-4">
+                        <button id="theme-toggle"
+                            class="h-10 w-10 flex items-center justify-center rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors">
+                            <svg id="theme-icon-light" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                                <circle cx="12" cy="12" r="4"></circle>
+                                <path d="M12 2v2"></path>
+                                <path d="M12 20v2"></path>
+                                <path d="m4.93 4.93 1.41 1.41"></path>
+                                <path d="m17.66 17.66 1.41 1.41"></path>
+                                <path d="M2 12h2"></path>
+                                <path d="M20 12h2"></path>
+                                <path d="m6.34 17.66-1.41 1.41"></path>
+                                <path d="m19.07 4.93-1.41 1.41"></path>
+                            </svg>
+                            <svg id="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 hidden">
+                                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+                            </svg>
+                        </button>
+                        <div class="relative">
+                            <button id="user-menu-button"
+                                class="max-w-xs bg-secondary rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-ring">
+                                <span class="sr-only">Open user menu</span>
+                                <img id="user-avatar" class="h-8 w-8 rounded-full"
+                                    src="https://placehold.co/32x32/E2E8F0/4A5568?text=U" alt="User avatar" />
+                            </button>
+                            <div id="user-menu"
+                                class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white text-slate-800 dark:bg-slate-800 dark:text-slate-100 ring-1 ring-black ring-opacity-5 hidden">
+                                <div class="px-4 py-2 text-sm" id="user-name-display"></div>
+                                <a href="#" id="logout-button" class="block px-4 py-2 text-sm hover:bg-accent">Đăng
+                                    xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="-mr-2 flex md:hidden">
+                        <!-- Mobile menu button -->
+                        <button id="mobile-menu-button" type="button"
+                            class="bg-secondary inline-flex items-center justify-center p-2 rounded-md text-muted-foreground hover:bg-accent focus:outline-none"
+                            aria-controls="mobile-menu" aria-expanded="false">
+                            <span class="sr-only">Open main menu</span>
+                            <i id="mobile-menu-icon" class="fa-solid fa-bars text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile menu, show/hide based on menu state. -->
+            <!-- UPDATED: Added bg-card for solid background -->
+            <div class="md:hidden hidden bg-card" id="mobile-menu">
+                <div id="mobile-nav-links" class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <a href="#" class="nav-link block px-3 py-2 rounded-md text-base font-medium"
+                        data-page="dashboard-page">Bảng điều khiển</a>
+                    <a href="#" class="nav-link block px-3 py-2 rounded-md text-base font-medium"
+                        data-page="customers-page">Khách hàng</a>
+                    <a href="#" class="nav-link block px-3 py-2 rounded-md text-base font-medium"
+                        data-page="products-page">Sản phẩm</a>
+                    <a href="#" class="nav-link block px-3 py-2 rounded-md text-base font-medium"
+                        data-page="invoices-page">Hóa đơn</a>
+                    <a href="#" class="nav-link block px-3 py-2 rounded-md text-base font-medium"
+                        data-page="reports-page">Báo cáo</a>
+                    <a href="#" class="nav-link block px-3 py-2 rounded-md text-base font-medium"
+                        data-page="settings-page">Cài đặt</a>
+                </div>
+                <div class="pt-4 pb-3 border-t border-border">
+                    <div class="flex items-center px-5">
+                        <div class="flex-shrink-0">
+                            <img id="mobile-user-avatar" class="h-10 w-10 rounded-full"
+                                src="https://placehold.co/40x40/E2E8F0/4A5568?text=U" alt="User avatar" />
+                        </div>
+                        <div class="ml-3">
+                            <div id="mobile-user-name" class="text-base font-medium leading-none"></div>
+                        </div>
+                        <button id="mobile-theme-toggle"
+                            class="ml-auto h-10 w-10 flex items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                            <svg id="mobile-theme-icon-light" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                                <circle cx="12" cy="12" r="4"></circle>
+                                <path d="M12 2v2"></path>
+                                <path d="M12 20v2"></path>
+                                <path d="m4.93 4.93 1.41 1.41"></path>
+                                <path d="m17.66 17.66 1.41 1.41"></path>
+                                <path d="M2 12h2"></path>
+                                <path d="M20 12h2"></path>
+                                <path d="m6.34 17.66-1.41 1.41"></path>
+                                <path d="m19.07 4.93-1.41 1.41"></path>
+                            </svg>
+                            <svg id="mobile-theme-icon-dark" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 hidden">
+                                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="mt-3 px-2 space-y-1">
+                        <a href="#" id="mobile-logout-button"
+                            class="block px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:bg-accent">Đăng
+                            xuất</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="pt-20 pb-20">
+            <div id="main-content" class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <!-- Pages will be injected here -->
+            </div>
+        </main>
+
+        <!-- Floating Action Button -->
+        <button id="create-invoice-fab"
+            class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg z-20 transition-transform transform hover:scale-110 flex items-center justify-center h-14 w-14">
+            <i class="fa-solid fa-plus text-xl"></i>
+            <span class="sr-only">Tạo Hóa Đơn</span>
+        </button>
+
+        <!-- Modals -->
+        <div id="modal-container"></div>
+        <div id="secondary-modal-container"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import {
+            getAuth,
+            GoogleAuthProvider,
+            signInWithPopup,
+            signOut,
+            onAuthStateChanged,
+            signInWithCustomToken,
+            signInAnonymously,
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            getDocs,
+            onSnapshot,
+            doc,
+            setDoc,
+            deleteDoc,
+            query,
+            orderBy,
+            runTransaction,
+            where,
+            writeBatch,
+            getDoc,
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyA9vfEcHD7QFqOH-X5PkXoMvtQP-vlGMxo",
+            authDomain: "hoa-don-thong-minh.firebaseapp.com",
+            projectId: "hoa-don-thong-minh",
+            storageBucket: "hoa-don-thong-minh.firebasestorage.app",
+            messagingSenderId: "696486569136",
+            appId: "1:696486569136:web:3b0265c77101ae545a8775",
+            measurementId: "G-2PPCSWZS46"
+        };
+
+        const appId =
+            typeof __app_id !== "undefined" ? __app_id : "default-invoice-app";
+
+        const ITEMS_PER_PAGE = 10;
+
+        // --- FIREBASE INITIALIZATION ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- GLOBAL STATE ---
+        let currentUser = null;
+        let userId = null;
+        let customers = [];
+        let products = [];
+        let invoices = [];
+        let stores = {};
+        let customerUnsubscribe = null;
+        let productUnsubscribe = null;
+        let invoiceUnsubscribe = null;
+        let settingsUnsubscribe = null;
+        let currentDetailId = null; // For customer detail page
+        let charts = {}; // To hold chart instances
+
+        let currentFilter = {
+            customers: { query: "", page: 1 },
+            products: { query: "", page: 1 },
+            invoices: { query: "", page: 1, startDate: null, endDate: null },
+            reports: { period: "all", startDate: null, endDate: null, page: 1 },
+        };
+
+        // --- DOM ELEMENTS ---
+        const loadingSpinner = document.getElementById("loading-spinner");
+        const loadingText = document.getElementById("loading-text");
+        const loginPage = document.getElementById("login-page");
+        const appContainer = document.getElementById("app-container");
+        const loginButton = document.getElementById("login-button");
+        const logoutButton = document.getElementById("logout-button");
+        const mainContent = document.getElementById("main-content");
+        const modalContainer = document.getElementById("modal-container");
+        const secondaryModalContainer = document.getElementById(
+            "secondary-modal-container"
+        );
+        const userMenuButton = document.getElementById("user-menu-button");
+        const userMenu = document.getElementById("user-menu");
+        const mobileMenuButton = document.getElementById("mobile-menu-button");
+        const mobileMenu = document.getElementById("mobile-menu");
+        const mobileMenuIcon = document.getElementById("mobile-menu-icon");
+
+        // --- THEME ---
+        const themeToggle = document.getElementById("theme-toggle");
+        const mobileThemeToggle = document.getElementById("mobile-theme-toggle");
+        const themeIconLight = document.getElementById("theme-icon-light");
+        const themeIconDark = document.getElementById("theme-icon-dark");
+        const mobileThemeIconLight = document.getElementById(
+            "mobile-theme-icon-light"
+        );
+        const mobileThemeIconDark = document.getElementById(
+            "mobile-theme-icon-dark"
+        );
+
+        const applyTheme = (theme) => {
+            if (theme === "dark") {
+                document.documentElement.classList.add("dark");
+                themeIconLight.classList.add("hidden");
+                themeIconDark.classList.remove("hidden");
+                mobileThemeIconLight.classList.add("hidden");
+                mobileThemeIconDark.classList.remove("hidden");
+            } else {
+                document.documentElement.classList.remove("dark");
+                themeIconLight.classList.remove("hidden");
+                themeIconDark.classList.add("hidden");
+                mobileThemeIconLight.classList.remove("hidden");
+                mobileThemeIconDark.classList.add("hidden");
+            }
+        };
+
+        const toggleTheme = () => {
+            const currentTheme = localStorage.getItem("theme") || "light";
+            const newTheme = currentTheme === "light" ? "dark" : "light";
+            localStorage.setItem("theme", newTheme);
+            applyTheme(newTheme);
+        };
+
+        themeToggle.addEventListener("click", toggleTheme);
+        mobileThemeToggle.addEventListener("click", toggleTheme);
+
+        // --- AUTHENTICATION ---
+        const handleAuth = async () => {
+            loadingSpinner.classList.remove("hidden");
+            try {
+                if (
+                    typeof __initial_auth_token !== "undefined" &&
+                    __initial_auth_token
+                ) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Authentication failed:", error);
+                await signInAnonymously(auth);
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            loadingSpinner.classList.add("hidden");
+            if (user) {
+                currentUser = user;
+                userId = user.uid;
+                loginPage.classList.add("hidden");
+                appContainer.classList.remove("hidden");
+                setupUIForUser(user);
+                attachDataListeners();
+                showPage("dashboard-page");
+            } else {
+                currentUser = null;
+                userId = null;
+                loginPage.classList.remove("hidden");
+                appContainer.classList.add("hidden");
+                detachDataListeners();
+            }
+        });
+
+        const signInWithGoogle = () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).catch((error) => {
+                console.error("Google Sign-In Error:", error);
+                showToast("Đăng nhập thất bại. Vui lòng thử lại.", "error");
+            });
+        };
+
+        const signOutUser = () => {
+            openConfirmationModal(
+                "Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?",
+                () => {
+                    signOut(auth).catch((error) => {
+                        console.error("Sign Out Error:", error);
+                        showToast("Đăng xuất thất bại!", "error");
+                    });
+                },
+                {
+                    title: "Đăng xuất",
+                    confirmLabel: "Đồng ý",
+                    cancelLabel: "Hủy",
+                    iconClass: "fa-arrow-right-from-bracket",
+                    confirmColor: "bg-blue-600 hover:bg-blue-700",
+                }
+            );
+        };
+
+        // --- UI SETUP & NAVIGATION ---
+        const setupUIForUser = (user) => {
+            const avatarUrl =
+                user.photoURL ||
+                `https://placehold.co/40x40/E2E8F0/4A5568?text=${user.displayName ? user.displayName.charAt(0).toUpperCase() : "U"
+                }`;
+            const displayName = user.displayName || "Người dùng";
+
+            document.getElementById("user-avatar").src = avatarUrl;
+            document.getElementById("user-name-display").textContent = displayName;
+            document.getElementById("mobile-user-avatar").src = avatarUrl;
+            document.getElementById("mobile-user-name").textContent = displayName;
+        };
+
+        const showPage = (pageId, params = {}) => {
+            mainContent.innerHTML = ""; // Clear previous content
+            currentDetailId = params.customerId || null; // Store customerId for detail page
+
+            // Destroy old charts before switching page
+            Object.values(charts).forEach((chart) => chart.destroy());
+            charts = {};
+
+            let pageContent = "";
+            switch (pageId) {
+                case "dashboard-page":
+                    pageContent = getDashboardHTML();
+                    break;
+                case "customers-page":
+                    pageContent = getCustomersHTML();
+                    break;
+                case "products-page":
+                    pageContent = getProductsHTML();
+                    break;
+                case "invoices-page":
+                    pageContent = getInvoicesHTML();
+                    break;
+                case "reports-page":
+                    pageContent = getReportsHTML();
+                    break;
+                case "settings-page":
+                    pageContent = getSettingsHTML();
+                    break;
+                case "customer-detail-page":
+                    pageContent = getCustomerDetailHTML();
+                    break;
+            }
+            mainContent.innerHTML = pageContent;
+
+            document.querySelectorAll(".nav-link").forEach((link) => {
+                link.classList.remove("active");
+                if (link.dataset.page === pageId) {
+                    link.classList.add("active");
+                }
+            });
+
+            // Render page content
+            switch (pageId) {
+                case "dashboard-page":
+                    renderDashboard();
+                    break;
+                case "customers-page":
+                    currentFilter.customers = { query: "", page: 1 };
+                    renderCustomers();
+                    break;
+                case "products-page":
+                    currentFilter.products = { query: "", page: 1 };
+                    renderProducts();
+                    break;
+                case "invoices-page":
+                    currentFilter.invoices = {
+                        query: "",
+                        page: 1,
+                        startDate: null,
+                        endDate: null,
+                    };
+                    renderInvoices();
+                    break;
+                case "reports-page":
+                    currentFilter.reports = {
+                        period: "all",
+                        startDate: null,
+                        endDate: null,
+                        page: 1,
+                    };
+                    renderReports();
+                    break;
+                case "settings-page":
+                    renderSettings();
+                    break;
+                case "customer-detail-page":
+                    renderCustomerDetail();
+                    break;
+            }
+            // Close mobile menu after navigation
+            if (!mobileMenu.classList.contains("hidden")) {
+                mobileMenu.classList.add("hidden");
+                mobileMenuIcon.classList.remove("fa-times");
+                mobileMenuIcon.classList.add("fa-bars");
+            }
+        };
+
+        // --- DATA LISTENERS ---
+        const attachDataListeners = () => {
+            if (!userId) return;
+            const customersRef = collection(
+                db,
+                `artifacts/${appId}/users/${userId}/customers`
+            );
+            customerUnsubscribe = onSnapshot(
+                query(customersRef, orderBy("customerCode", "desc")),
+                (snapshot) => {
+                    customers = snapshot.docs.map((doc) => ({
+                        id: doc.id,
+                        ...doc.data(),
+                    }));
+                    if (document.getElementById("customers-container"))
+                        renderCustomers();
+                    if (document.getElementById("dashboard-content")) renderDashboard();
+                    if (document.getElementById("customer-detail-content"))
+                        renderCustomerDetail();
+                }
+            );
+
+            const productsRef = collection(
+                db,
+                `artifacts/${appId}/users/${userId}/products`
+            );
+            productUnsubscribe = onSnapshot(
+                query(productsRef, orderBy("productCode", "asc")),
+                (snapshot) => {
+                    products = snapshot.docs.map((doc) => ({
+                        id: doc.id,
+                        ...doc.data(),
+                    }));
+                    if (document.getElementById("products-container")) renderProducts();
+                    if (document.getElementById("dashboard-content")) renderDashboard();
+                    if (document.getElementById("report-content")) renderReports();
+                }
+            );
+
+            const invoicesRef = collection(
+                db,
+                `artifacts/${appId}/users/${userId}/invoices`
+            );
+            invoiceUnsubscribe = onSnapshot(
+                query(invoicesRef, orderBy("invoiceId", "desc")),
+                (snapshot) => {
+                    invoices = snapshot.docs.map((doc) => ({
+                        id: doc.id,
+                        ...doc.data(),
+                    }));
+                    if (document.getElementById("invoices-container")) renderInvoices();
+                    if (document.getElementById("dashboard-content")) renderDashboard();
+                    if (document.getElementById("report-content")) renderReports();
+                    if (document.getElementById("customer-detail-content"))
+                        renderCustomerDetail();
+                }
+            );
+
+            const settingsRef = doc(
+                db,
+                `artifacts/${appId}/users/${userId}/settings/stores`
+            );
+            settingsUnsubscribe = onSnapshot(settingsRef, (doc) => {
+                if (doc.exists()) {
+                    stores = doc.data();
+                } else {
+                    stores = {
+                        store1: { name: "", slogan: "", hotline: "", address: "" },
+                        store2: { name: "", slogan: "", hotline: "", address: "" },
+                        store3: { name: "", slogan: "", hotline: "", address: "" },
+                    };
+                }
+                if (document.getElementById("settings-form")) {
+                    renderSettings();
+                }
+            });
+        };
+
+        const detachDataListeners = () => {
+            if (customerUnsubscribe) customerUnsubscribe();
+            if (productUnsubscribe) productUnsubscribe();
+            if (invoiceUnsubscribe) invoiceUnsubscribe();
+            if (settingsUnsubscribe) settingsUnsubscribe();
+        };
+
+        // --- CRUD OPERATIONS ---
+        const saveData = async (
+            collectionName,
+            data,
+            id = null,
+            subCollection = null
+        ) => {
+            if (!userId) return null;
+            let docRef;
+
+            const timestamp = new Date();
+            data.updatedAt = timestamp;
+            if (!id) {
+                data.createdAt = timestamp;
+            }
+
+            if (subCollection) {
+                docRef = doc(
+                    db,
+                    `artifacts/${appId}/users/${userId}/${collectionName}/${subCollection}`
+                );
+            } else if (id) {
+                docRef = doc(
+                    db,
+                    `artifacts/${appId}/users/${userId}/${collectionName}`,
+                    id
+                );
+            } else {
+                docRef = doc(
+                    collection(
+                        db,
+                        `artifacts/${appId}/users/${userId}/${collectionName}`
+                    )
+                );
+            }
+
+            try {
+                await setDoc(docRef, data, { merge: true });
+                const noun =
+                    collectionName === "settings"
+                        ? "Cài đặt"
+                        : collectionName.slice(0, -1);
+                showToast(`Lưu ${noun} thành công!`);
+                return docRef.id;
+            } catch (error) {
+                console.error(`Error saving ${collectionName}:`, error);
+                const noun =
+                    collectionName === "settings"
+                        ? "Cài đặt"
+                        : collectionName.slice(0, -1);
+                showToast(`Lỗi khi lưu ${noun}.`, "error");
+                return null;
+            }
+        };
+
+        const deleteData = (collectionName, id) => {
+            if (!userId) return;
+
+            const message =
+                "Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa mục này không?";
+
+            openConfirmationModal(
+                message,
+                async () => {
+                    try {
+                        await deleteDoc(
+                            doc(
+                                db,
+                                `artifacts/${appId}/users/${userId}/${collectionName}`,
+                                id
+                            )
+                        );
+                        showToast(`Xóa ${collectionName.slice(0, -1)} thành công!`);
+                    } catch (error) {
+                        console.error(`Error deleting ${collectionName}:`, error);
+                        showToast(`Lỗi khi xóa ${collectionName.slice(0, -1)}.`, "error");
+                    }
+                },
+                {
+                    title: "Xóa dữ liệu",
+                    confirmLabel: "Xóa",
+                    cancelLabel: "Hủy",
+                    iconClass: "fa-trash-can",
+                    confirmColor: "bg-red-600 hover:bg-red-700",
+                }
+            );
+        };
+
+        // --- PAGE HTML & RENDER FUNCTIONS ---
+
+        // Dashboard
+        const getDashboardHTML = () => `
+            <div id="dashboard-content">
+                <h1 class="text-3xl font-bold mb-6">Bảng điều khiển</h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="dashboard-cards-grid">
+                    <!-- Cards will be injected here by renderDashboard -->
+                </div>
+                <div class="mt-8 bg-card p-4 sm:p-6 rounded-lg shadow-sm border border-border">
+                    <h2 class="text-xl font-semibold mb-4">Hóa đơn gần đây</h2>
+                    <!-- Table View for sm and up -->
+                    <div class="hidden sm:block overflow-x-auto">
+                        <table class="w-full text-left">
+                           <thead>
+                                <tr class="border-b border-border">
+                                    <th class="p-3">Mã HĐ</th>
+                                    <th class="p-3">Khách hàng</th>
+                                    <th class="p-3">Ngày tạo</th>
+                                    <th class="p-3 text-right">Tổng tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-invoices-table-body"></tbody>
+                        </table>
+                    </div>
+                    <!-- Card View for xs -->
+                    <div id="recent-invoices-card-view" class="sm:hidden space-y-4"></div>
+                </div>
+            </div>`;
+
+        const renderDashboard = () => {
+            const dashboardContent = document.getElementById("dashboard-content");
+            if (!dashboardContent) return;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const invoicesToday = invoices.filter(
+                (inv) => inv.createdAt.toDate() >= today
+            );
+            const revenueToday = invoicesToday.reduce(
+                (sum, inv) => sum + inv.totalAmount,
+                0
+            );
+
+            const totalRevenue = invoices.reduce(
+                (sum, inv) => sum + inv.totalAmount,
+                0
+            );
+
+            const totalProfit = invoices.reduce(
+                (sum, inv) => sum + calculateInvoiceProfit(inv),
+                0
+            );
+
+            const cardData = [
+                {
+                    id: "invoices-today-card",
+                    title: "Hóa đơn hôm nay",
+                    value: invoicesToday.length,
+                    icon: "fa-file-invoice",
+                    color: "sky",
+                    chartId: "invoicesChart",
+                },
+                {
+                    id: "revenue-today-card",
+                    title: "Doanh thu hôm nay",
+                    value: formatCurrency(revenueToday),
+                    icon: "fa-arrow-trend-up",
+                    color: "green",
+                    chartId: "revenueChart",
+                },
+                {
+                    id: "total-revenue-card",
+                    title: "Tổng doanh thu",
+                    value: formatCurrency(totalRevenue),
+                    icon: "fa-dollar-sign",
+                    color: "yellow",
+                    chartId: "totalRevenueChart",
+                },
+                {
+                    id: "total-profit-card",
+                    title: "Tổng lợi nhuận",
+                    value: formatCurrency(totalProfit),
+                    icon: "fa-piggy-bank",
+                    color: "purple",
+                    chartId: "profitChart",
+                },
+            ];
+
+            const grid = document.getElementById("dashboard-cards-grid");
+            grid.innerHTML = cardData
+                .map(
+                    (card) => `
+                 <div class="bg-card p-4 rounded-lg shadow-sm border border-border flex flex-col justify-between">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-muted-foreground">${card.title}</p>
+                            <p class="text-2xl font-bold">${card.value}</p>
+                        </div>
+                         <i class="fa-solid ${card.icon} text-2xl text-${card.color}-500 dark:text-${card.color}-400"></i>
+                    </div>
+                    <div class="mt-4 h-16">
+                        <canvas id="${card.chartId}"></canvas>
+                    </div>
+                </div>
+            `
+                )
+                .join("");
+
+            // Render Charts
+            renderTinyChart("invoicesChart", "bar", "#0ea5e9");
+            renderTinyChart("revenueChart", "line", "#22c55e");
+            renderTinyChart("totalRevenueChart", "line", "#eab308");
+            renderTinyChart("profitChart", "bar", "#a855f7");
+
+            const recentInvoices = invoices.slice(0, 5);
+
+            // Render Table View
+            const recentInvoicesTableBody = document.getElementById(
+                "recent-invoices-table-body"
+            );
+            recentInvoicesTableBody.innerHTML = recentInvoices
+                .map(
+                    (inv) => `
+                <tr class="border-b border-border hover:bg-muted/50">
+                    <td class="p-3 font-medium text-primary">${inv.invoiceId
+                        }</td>
+                    <td class="p-3">${inv.customerName}</td>
+                    <td class="p-3">${formatDate(inv.createdAt.toDate())}</td>
+                    <td class="p-3 text-right font-semibold">${formatCurrency(
+                            inv.totalAmount
+                        )}</td>
+                </tr>
+            `
+                )
+                .join("");
+
+            // Render Card View
+            const recentInvoicesCardView = document.getElementById(
+                "recent-invoices-card-view"
+            );
+            recentInvoicesCardView.innerHTML =
+                recentInvoices
+                    .map(
+                        (inv) => `
+                <div class="p-4 border border-border rounded-lg bg-background">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-semibold text-primary">${inv.invoiceId
+                            }</p>
+                            <p class="font-medium">${inv.customerName}</p>
+                        </div>
+                        <p class="font-bold text-lg">${formatCurrency(
+                                inv.totalAmount
+                            )}</p>
+                    </div>
+                    <p class="text-sm text-muted-foreground mt-2">${formatDate(
+                                inv.createdAt.toDate()
+                            )}</p>
+                </div>
+            `
+                    )
+                    .join("") ||
+                `<p class="text-center text-muted-foreground p-4">Không có hóa đơn nào gần đây.</p>`;
+        };
+
+        const renderTinyChart = (canvasId, type, color) => {
+            const ctx = document.getElementById(canvasId)?.getContext("2d");
+            if (!ctx) return;
+
+            // Generate some random data for visual effect
+            const data = Array.from({ length: 7 }, () =>
+                Math.floor(Math.random() * 1000)
+            );
+            const labels = Array.from({ length: 7 }, (_, i) => `Day ${i + 1}`);
+
+            if (charts[canvasId]) {
+                charts[canvasId].destroy();
+            }
+
+            charts[canvasId] = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "Data",
+                            data: data,
+                            backgroundColor: `${color}33`, // with opacity
+                            borderColor: color,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            fill: type === "line",
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false },
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false },
+                    },
+                },
+            });
+        };
+
+        // Generic Pagination Renderer
+        const renderPagination = (containerId, page, totalPages, pageKey) => {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (totalPages <= 1) {
+                container.innerHTML = "";
+                return;
+            }
+            container.innerHTML = `
+                <span class="text-sm text-muted-foreground">
+                    Trang <span class="font-semibold text-foreground">${page}</span> / <span class="font-semibold text-foreground">${totalPages}</span>
+                </span>
+                <div class="inline-flex mt-2 xs:mt-0">
+                    <button data-page-key="${pageKey}" data-direction="prev" class="pagination-btn flex items-center justify-center px-4 h-10 text-base font-medium bg-card rounded-l-lg hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed border border-border" ${page === 1 ? "disabled" : ""
+                }>
+                        Trước
+                    </button>
+                    <button data-page-key="${pageKey}" data-direction="next" class="pagination-btn flex items-center justify-center px-4 h-10 text-base font-medium bg-card border-y border-r border-border rounded-r-lg hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed" ${page === totalPages ? "disabled" : ""
+                }>
+                        Sau
+                    </button>
+                </div>
+            `;
+        };
+
+        // Customers
+        const getCustomersHTML = () => `
+            <div id="customers-container">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h1 class="text-3xl font-bold">Quản lý Khách hàng</h1>
+                    <button id="add-customer-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg flex items-center transition-colors shadow-sm">
+                        <i class="fa-solid fa-plus mr-2"></i> Thêm Khách hàng
+                    </button>
+                </div>
+                 <div class="mb-4 relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
+                    <input type="text" id="customer-search-input" placeholder="Tìm theo tên, SĐT hoặc mã KH..." class="w-full p-3 pl-10 border border-border rounded-lg bg-card focus:ring-2 focus:ring-ring focus:border-ring">
+                </div>
+                <!-- Table View -->
+                <div class="hidden sm:block bg-card rounded-lg shadow-sm overflow-x-auto border border-border">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-border">
+                                <th class="p-4">Mã KH</th>
+                                <th class="p-4">Tên Khách hàng</th>
+                                <th class="p-4">Số điện thoại</th>
+                                <th class="p-4 text-right">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-table-body"></tbody>
+                    </table>
+                </div>
+                <!-- Card View -->
+                <div id="customers-card-view" class="sm:hidden space-y-4"></div>
+                <div id="customers-pagination" class="flex flex-col items-center mt-4"></div>
+            </div>`;
+
+        const renderCustomers = () => {
+            const container = document.getElementById("customers-container");
+            if (!container) return;
+
+            const searchTerm = currentFilter.customers.query.toLowerCase();
+            const filteredData = customers.filter(
+                (c) =>
+                    c.name.toLowerCase().includes(searchTerm) ||
+                    (c.phone && c.phone.includes(searchTerm)) ||
+                    (c.customerCode &&
+                        c.customerCode.toLowerCase().includes(searchTerm))
+            );
+
+            const page = currentFilter.customers.page;
+            const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE) || 1;
+            const start = (page - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const paginatedData = filteredData.slice(start, end);
+
+            // Render Table View
+            const tableBody = document.getElementById("customers-table-body");
+            tableBody.innerHTML =
+                paginatedData
+                    .map(
+                        (customer) => `
+                <tr class="border-b border-border last:border-0 hover:bg-muted/50">
+                    <td class="p-4 font-medium text-muted-foreground">${customer.customerCode || "N/A"
+                            }</td>
+                    <td class="p-4 font-semibold">${customer.name}</td>
+                    <td class="p-4">${customer.phone || ""}</td>
+                    <td class="p-4 text-right">
+                        <div class="flex justify-end items-center gap-1">
+                            <button class="view-customer-btn p-2 h-9 w-9 flex items-center justify-center rounded-md text-muted-foreground hover:text-primary hover:bg-accent" title="Xem chi tiết" data-id="${customer.id
+                            }"><i class="fa-solid fa-eye"></i></button>
+                            <button class="edit-customer-btn p-2 h-9 w-9 flex items-center justify-center rounded-md text-muted-foreground hover:text-yellow-500 hover:bg-accent" title="Sửa" data-id="${customer.id
+                            }"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button class="delete-customer-btn p-2 h-9 w-9 flex items-center justify-center rounded-md text-muted-foreground hover:text-red-500 hover:bg-accent" title="Xóa" data-id="${customer.id
+                            }"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `
+                    )
+                    .join("") ||
+                `<tr><td colspan="4" class="text-center p-6 text-muted-foreground">Không tìm thấy khách hàng.</td></tr>`;
+
+            // Render Card View
+            const cardView = document.getElementById("customers-card-view");
+            cardView.innerHTML =
+                paginatedData
+                    .map(
+                        (customer) => `
+                <div class="p-4 border border-border rounded-lg bg-card shadow-sm">
+                    <div>
+                        <p class="font-semibold text-lg">${customer.name}</p>
+                        <p class="text-sm text-muted-foreground">${customer.customerCode || "N/A"
+                            }</p>
+                    </div>
+                    <p class="text-sm my-2"><i class="fa-solid fa-phone w-4 mr-2 text-muted-foreground"></i> ${customer.phone || "Chưa có SĐT"
+                            }</p>
+                    <div class="flex justify-end items-center gap-2 border-t border-border pt-3 mt-3">
+                        <button class="view-customer-btn flex-1 py-2 px-3 rounded-md text-muted-foreground hover:text-primary hover:bg-accent text-sm flex items-center justify-center gap-2" data-id="${customer.id
+                            }"><i class="fa-solid fa-eye"></i> Xem</button>
+                        <button class="edit-customer-btn flex-1 py-2 px-3 rounded-md text-muted-foreground hover:text-yellow-500 hover:bg-accent text-sm flex items-center justify-center gap-2" data-id="${customer.id
+                            }"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+                        <button class="delete-customer-btn flex-1 py-2 px-3 rounded-md text-muted-foreground hover:text-red-500 hover:bg-accent text-sm flex items-center justify-center gap-2" data-id="${customer.id
+                            }"><i class="fa-solid fa-trash-can"></i> Xóa</button>
+                    </div>
+                </div>
+            `
+                    )
+                    .join("") ||
+                `<p class="text-center text-muted-foreground p-6">Không tìm thấy khách hàng.</p>`;
+
+            renderPagination("customers-pagination", page, totalPages, "customers");
+        };
+
+        // Products
+        const getProductsHTML = () => `
+            <div id="products-container">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h1 class="text-3xl font-bold">Quản lý Sản phẩm</h1>
+                    <div class="flex flex-wrap gap-2">
+                         <input type="file" id="import-excel-input" class="hidden" accept=".xlsx, .xls">
+                         <button id="download-sample-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-4 rounded-lg flex items-center transition-colors shadow-sm">
+                            <i class="fa-solid fa-file-arrow-down mr-2"></i> Tải file mẫu
+                        </button>
+                         <button id="import-excel-btn" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2.5 px-4 rounded-lg flex items-center transition-colors shadow-sm">
+                            <i class="fa-solid fa-file-import mr-2"></i> Nhập Excel
+                        </button>
+                        <button id="add-product-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg flex items-center transition-colors shadow-sm">
+                            <i class="fa-solid fa-plus mr-2"></i> Thêm Sản phẩm
+                        </button>
+                    </div>
+                </div>
+                 <div class="mb-4 relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
+                    <input type="text" id="product-search-input" placeholder="Tìm theo tên hoặc mã SP..." class="w-full p-3 pl-10 border border-border rounded-lg bg-card focus:ring-2 focus:ring-ring">
+                </div>
+                <!-- Table View -->
+                <div class="hidden sm:block bg-card rounded-lg shadow-sm overflow-x-auto border border-border">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-border">
+                                <th class="p-4">Mã SP</th>
+                                <th class="p-4">Tên Sản phẩm</th>
+                                <th class="p-4 text-right">Giá nhập</th>
+                                <th class="p-4 text-right">Giá bán</th>
+                                <th class="p-4 text-right">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body"></tbody>
+                    </table>
+                </div>
+                <!-- Card View -->
+                <div id="products-card-view" class="sm:hidden space-y-4"></div>
+                <div id="products-pagination" class="flex flex-col items-center mt-4"></div>
+            </div>`;
+
+        const renderProducts = () => {
+            const container = document.getElementById("products-container");
+            if (!container) return;
+
+            const searchTerm = currentFilter.products.query.toLowerCase();
+            const filteredData = products.filter(
+                (p) =>
+                    p.name.toLowerCase().includes(searchTerm) ||
+                    (p.productCode && p.productCode.toLowerCase().includes(searchTerm))
+            );
+
+            const page = currentFilter.products.page;
+            const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE) || 1;
+            const start = (page - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const paginatedData = filteredData.slice(start, end);
+
+            // Render Table View
+            const tableBody = document.getElementById("products-table-body");
+            tableBody.innerHTML =
+                paginatedData
+                    .map(
+                        (product) => `
+                <tr class="border-b border-border last:border-0 hover:bg-muted/50">
+                    <td class="p-4 font-medium text-muted-foreground">${product.productCode || "N/A"
+                            }</td>
+                    <td class="p-4 font-semibold">${product.name}</td>
+                    <td class="p-4 text-right">${formatCurrency(
+                                product.costPrice
+                            )}</td>
+                    <td class="p-4 text-right">${formatCurrency(
+                                product.sellingPrice
+                            )}</td>
+                    <td class="p-4 text-right">
+                         <div class="flex justify-end items-center gap-1">
+                            <button class="edit-product-btn p-2 h-9 w-9 flex items-center justify-center rounded-md text-muted-foreground hover:text-yellow-500 hover:bg-accent" title="Sửa" data-id="${product.id
+                            }"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button class="delete-product-btn p-2 h-9 w-9 flex items-center justify-center rounded-md text-muted-foreground hover:text-red-500 hover:bg-accent" title="Xóa" data-id="${product.id
+                            }"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `
+                    )
+                    .join("") ||
+                `<tr><td colspan="5" class="text-center p-6 text-muted-foreground">Không tìm thấy sản phẩm.</td></tr>`;
+
+            // Render Card View
+            const cardView = document.getElementById("products-card-view");
+            cardView.innerHTML =
+                paginatedData
+                    .map(
+                        (product) => `
+                 <div class="p-4 border border-border rounded-lg bg-card shadow-sm">
+                    <div>
+                        <p class="font-semibold text-lg">${product.name}</p>
+                        <p class="text-sm text-muted-foreground">${product.productCode || "N/A"
+                            }</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 my-3 text-center">
+                        <div>
+                            <p class="text-sm text-muted-foreground">Giá nhập</p>
+                            <p class="font-semibold">${formatCurrency(
+                                product.costPrice
+                            )}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted-foreground">Giá bán</p>
+                            <p class="font-semibold">${formatCurrency(
+                                product.sellingPrice
+                            )}</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end items-center gap-2 border-t border-border pt-3 mt-3">
+                        <button class="edit-product-btn flex-1 py-2 px-3 rounded-md text-muted-foreground hover:text-yellow-500 hover:bg-accent text-sm flex items-center justify-center gap-2" data-id="${product.id
+                            }"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+                        <button class="delete-product-btn flex-1 py-2 px-3 rounded-md text-muted-foreground hover:text-red-500 hover:bg-accent text-sm flex items-center justify-center gap-2" data-id="${product.id
+                            }"><i class="fa-solid fa-trash-can"></i> Xóa</button>
+                    </div>
+                </div>
+            `
+                    )
+                    .join("") ||
+                `<p class="text-center text-muted-foreground p-6">Không tìm thấy sản phẩm.</p>`;
+
+            renderPagination("products-pagination", page, totalPages, "products");
+        };
+
+        // Invoices
+        const getInvoicesHTML = () => `
+            <div id="invoices-container">
+                <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                    <h1 class="text-3xl font-bold">Quản lý Hóa đơn</h1>
+                </div>
+                <div class="mb-6 bg-card p-4 rounded-lg shadow-sm border border-border">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label for="invoice-search-input" class="text-sm font-medium text-muted-foreground">Tìm kiếm</label>
+                            <div class="relative mt-1">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
+                                <input type="text" id="invoice-search-input" placeholder="Tìm theo mã HĐ, tên khách hàng, SĐT..." class="w-full p-3 pl-10 border border-border rounded-lg bg-card focus:ring-2 focus:ring-ring">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="invoice-date-filter" class="text-sm font-medium text-muted-foreground">Lọc theo ngày</label>
+                            <select id="invoice-date-filter" class="w-full p-3 mt-1 border border-border rounded-lg bg-card focus:ring-2 focus:ring-ring">
+                                <option value="all">Tất cả</option>
+                                <option value="today">Hôm nay</option>
+                                <option value="week">Tuần này</option>
+                                <option value="month">Tháng này</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- Table View -->
+                <div class="hidden sm:block bg-card rounded-lg shadow-sm overflow-x-auto border border-border">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-border">
+                                <th class="p-4">Mã HĐ</th>
+                                <th class="p-4">Khách hàng</th>
+                                <th class="p-4 text-right">Tổng tiền</th>
+                                <th class="p-4 text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoices-table-body"></tbody>
+                    </table>
+                </div>
+                <!-- Card View -->
+                <div id="invoices-card-view" class="sm:hidden space-y-4"></div>
+                <div id="invoices-pagination" class="flex flex-col items-center mt-4"></div>
+            </div>`;
+
+        const renderInvoices = () => {
+            const container = document.getElementById("invoices-container");
+            if (!container) return;
+
+            const searchTerm = currentFilter.invoices.query.toLowerCase();
+            const dateFilter = currentFilter.invoices.dateFilter;
+
+            const now = new Date();
+            const today_start = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate()
+            );
+            const today_end = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate(),
+                23,
+                59,
+                59,
+                999
+            );
+            const week_start = new Date(today_start);
+            week_start.setDate(today_start.getDate() - today_start.getDay());
+            const month_start = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            let filteredData = invoices.filter(
+                (inv) =>
+                    inv.invoiceId.toLowerCase().includes(searchTerm) ||
+                    inv.customerName.toLowerCase().includes(searchTerm) ||
+                    (inv.customerPhone && inv.customerPhone.includes(searchTerm))
+            );
+
+            filteredData = filteredData.filter((inv) => {
+                const invDate = inv.createdAt.toDate();
+                if (dateFilter === "today")
+                    return invDate >= today_start && invDate <= today_end;
+                if (dateFilter === "week")
+                    return invDate >= week_start && invDate <= today_end;
+                if (dateFilter === "month")
+                    return invDate >= month_start && invDate <= today_end;
+                return true; // 'all'
+            });
+
+            const page = currentFilter.invoices.page;
+            const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE) || 1;
+            const start = (page - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const paginatedData = filteredData.slice(start, end);
+
+            // Render Table View
+            const tableBody = document.getElementById("invoices-table-body");
+            tableBody.innerHTML =
+                paginatedData
+                    .map(
+                        (invoice) => `
+                <tr class="border-b border-border last:border-0 hover:bg-muted/50">
+                    <td class="p-4 font-medium text-primary">${invoice.invoiceId
+                            }<br><span class="text-xs text-muted-foreground">${formatDate(
+                                invoice.createdAt.toDate()
+                            )}</span></td>
+                    <td class="p-4 font-semibold">${invoice.customerName}</td>
+                    <td class="p-4 text-right font-semibold">${formatCurrency(
+                                invoice.totalAmount
+                            )}</td>
+                    <td class="p-4 text-center">
+                        <div class="flex justify-center items-center gap-1">
+                            <button class="view-invoice-btn p-2 h-9 w-9 flex items-center justify-center rounded-md text-muted-foreground hover:text-primary hover:bg-accent" title="Xem & Xuất ảnh" data-id="${invoice.id
+                            }"><i class="fa-solid fa-eye"></i></button>
+                            <button class="edit-invoice-btn p-2 h-9 w-9 flex items-center justify-center rounded-md text-muted-foreground hover:text-yellow-500 hover:bg-accent" title="Sửa" data-id="${invoice.id
+                            }"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button class="delete-invoice-btn p-2 h-9 w-9 flex items-center justify-center rounded-md text-muted-foreground hover:text-red-500 hover:bg-accent" title="Xóa" data-id="${invoice.id
+                            }"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `
+                    )
+                    .join("") ||
+                `<tr><td colspan="4" class="text-center p-6 text-muted-foreground">Không tìm thấy hóa đơn.</td></tr>`;
+
+            // Render Card View
+            const cardView = document.getElementById("invoices-card-view");
+            cardView.innerHTML =
+                paginatedData
+                    .map(
+                        (invoice) => `
+                <div class="p-4 border border-border rounded-lg bg-card shadow-sm">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-semibold text-primary">${invoice.invoiceId
+                            }</p>
+                            <p class="font-medium">${invoice.customerName}</p>
+                            <p class="text-sm text-muted-foreground mt-1">${formatDate(
+                                invoice.createdAt.toDate()
+                            )}</p>
+                        </div>
+                        <p class="font-bold text-lg">${formatCurrency(
+                                invoice.totalAmount
+                            )}</p>
+                    </div>
+                    <div class="flex justify-end items-center gap-2 border-t border-border pt-3 mt-3">
+                        <button class="view-invoice-btn flex-1 py-2 px-3 rounded-md text-muted-foreground hover:text-primary hover:bg-accent text-sm flex items-center justify-center gap-2" data-id="${invoice.id
+                            }"><i class="fa-solid fa-eye"></i> Xem</button>
+                        <button class="edit-invoice-btn flex-1 py-2 px-3 rounded-md text-muted-foreground hover:text-yellow-500 hover:bg-accent text-sm flex items-center justify-center gap-2" data-id="${invoice.id
+                            }"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+                        <button class="delete-invoice-btn flex-1 py-2 px-3 rounded-md text-muted-foreground hover:text-red-500 hover:bg-accent text-sm flex items-center justify-center gap-2" data-id="${invoice.id
+                            }"><i class="fa-solid fa-trash-can"></i> Xóa</button>
+                    </div>
+                </div>
+            `
+                    )
+                    .join("") ||
+                `<p class="text-center text-muted-foreground p-6">Không tìm thấy hóa đơn.</p>`;
+
+            renderPagination("invoices-pagination", page, totalPages, "invoices");
+        };
+
+        // Reports
+        const getReportsHTML = () => `
+            <div id="report-content">
+                <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                    <h1 class="text-3xl font-bold">Thống kê & Báo cáo</h1>
+                    <button id="export-excel-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-lg flex items-center transition-colors shadow-sm">
+                        <i class="fa-solid fa-file-excel mr-2"></i> Xuất Excel
+                    </button>
+                </div>
+                <div class="mb-6 bg-card p-4 rounded-lg shadow-sm border border-border">
+                    <div class="flex flex-col sm:flex-row flex-wrap items-center gap-y-4 gap-x-6">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-semibold whitespace-nowrap">Lọc nhanh:</span>
+                            <div id="report-filter-buttons" class="flex flex-wrap gap-2">
+                                <button class="filter-btn px-3 py-1.5 rounded-md text-sm font-medium bg-secondary text-secondary-foreground" data-period="all">Tất cả</button>
+                                <button class="filter-btn px-3 py-1.5 rounded-md text-sm font-medium bg-secondary text-secondary-foreground" data-period="today">Hôm nay</button>
+                                <button class="filter-btn px-3 py-1.5 rounded-md text-sm font-medium bg-secondary text-secondary-foreground" data-period="week">Tuần này</button>
+                                <button class="filter-btn px-3 py-1.5 rounded-md text-sm font-medium bg-secondary text-secondary-foreground" data-period="month">Tháng này</button>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+                            <span class="font-semibold whitespace-nowrap">Khoảng ngày:</span>
+                            <input type="date" id="report-start-date" class="p-2 border rounded-md bg-background border-border">
+                            <span class="hidden sm:inline">-</span>
+                            <input type="date" id="report-end-date" class="p-2 border rounded-md bg-background border-border">
+                        </div>
+                    </div>
+                </div>
+                <div id="report-summary" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"></div>
+                
+                <div class="bg-card p-2 sm:p-4 rounded-lg shadow-sm border border-border">
+                    <h3 class="text-xl font-semibold mb-4 px-2">Báo cáo Doanh thu & Lợi nhuận</h3>
+                    <!-- Table View -->
+                    <div class="hidden sm:block overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-border">
+                                    <th class="p-3">Mã HĐ</th>
+                                    <th class="p-3">Khách hàng</th>
+                                    <th class="p-3">Ngày tạo</th>
+                                    <th class="p-3 text-right">Doanh thu</th>
+                                    <th class="p-3 text-right">Lợi nhuận</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-table-body"></tbody>
+                        </table>
+                    </div>
+                    <!-- Card View -->
+                    <div id="report-card-view" class="sm:hidden space-y-4 p-2"></div>
+                </div>
+                <div id="reports-pagination" class="flex flex-col items-center mt-4"></div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                    <div class="bg-card p-4 sm:p-6 rounded-lg shadow-sm border border-border">
+                        <h3 class="text-xl font-semibold mb-4">Top 10 Sản phẩm Bán chạy nhất</h3>
+                        <div id="top-selling-products" class="overflow-x-auto"></div>
+                    </div>
+                    <div class="bg-card p-4 sm:p-6 rounded-lg shadow-sm border border-border">
+                        <h3 class="text-xl font-semibold mb-4">Top 10 Sản phẩm Lợi nhuận cao nhất</h3>
+                        <div id="top-profit-products" class="overflow-x-auto"></div>
+                    </div>
+                </div>
+            </div>`;
+
+        let filteredReportData = [];
+
+        const renderReports = () => {
+            if (!document.getElementById("report-content")) return;
+
+            const { period, startDate, endDate, page } = currentFilter.reports;
+
+            const now = new Date();
+            const today_start = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate()
+            );
+            const today_end = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate(),
+                23,
+                59,
+                59,
+                999
+            );
+            const week_start = new Date(today_start);
+            week_start.setDate(today_start.getDate() - today_start.getDay());
+            const month_start = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            filteredReportData = invoices.filter((inv) => {
+                const invDate = inv.createdAt.toDate();
+                if (period === "today")
+                    return invDate >= today_start && invDate <= today_end;
+                if (period === "week")
+                    return invDate >= week_start && invDate <= today_end;
+                if (period === "month")
+                    return invDate >= month_start && invDate <= today_end;
+                if (period === "custom" && startDate && endDate) {
+                    const start = new Date(startDate);
+                    start.setHours(0, 0, 0, 0);
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59, 999);
+                    return invDate >= start && invDate <= end;
+                }
+                return true; // 'all'
+            });
+
+            // Summary Cards
+            const totalInvoices = filteredReportData.length;
+            const totalRevenue = filteredReportData.reduce(
+                (sum, inv) => sum + inv.totalAmount,
+                0
+            );
+            const totalProfit = filteredReportData.reduce(
+                (sum, inv) => sum + calculateInvoiceProfit(inv),
+                0
+            );
+
+            const summaryContainer = document.getElementById("report-summary");
+            if (summaryContainer) {
+                summaryContainer.innerHTML = `
+  <!-- Tổng số hóa đơn -->
+  <div class="p-4 rounded-xl shadow ring-1 ring-[#fecaca] dark:ring-[#7f1d1d] bg-[#fee2e2] dark:bg-[#7f1d1d]/40 flex items-center gap-4 transition-all">
+    <div class="h-10 w-10 flex items-center justify-center rounded-full bg-[#fb7185] dark:bg-[#7f1d1d] text-white">
+      <i class="fa-solid fa-file-invoice text-xl"></i>
+    </div>
+    <div>
+      <p class="text-sm font-semibold text-[#b91c1c] dark:text-[#fecaca]">Tổng số hóa đơn</p>
+      <p class="text-2xl font-extrabold text-[#7f1d1d] dark:text-white">${totalInvoices}</p>
+    </div>
+  </div>
+
+  <!-- Tổng doanh thu -->
+  <div class="p-4 rounded-xl shadow ring-1 ring-[#99f6e4] dark:ring-[#134e4a] bg-[#ccfbf1] dark:bg-[#115e59]/40 flex items-center gap-4 transition-all">
+    <div class="h-10 w-10 flex items-center justify-center rounded-full bg-[#2dd4bf] dark:bg-[#134e4a] text-white">
+      <i class="fa-solid fa-money-bill-wave text-xl"></i>
+    </div>
+    <div>
+      <p class="text-sm font-semibold text-[#065f46] dark:text-[#99f6e4]">Tổng doanh thu</p>
+      <p class="text-2xl font-extrabold text-[#064e3b] dark:text-white">${formatCurrency(
+                    totalRevenue
+                )}</p>
+    </div>
+  </div>
+
+  <!-- Tổng lợi nhuận -->
+  <div class="p-4 rounded-xl shadow ring-1 ring-[#c7d2fe] dark:ring-[#312e81] bg-[#e0e7ff] dark:bg-[#3730a3]/40 flex items-center gap-4 transition-all">
+    <div class="h-10 w-10 flex items-center justify-center rounded-full bg-[#818cf8] dark:bg-[#4338ca] text-white">
+      <i class="fa-solid fa-chart-line text-xl"></i>
+    </div>
+    <div>
+      <p class="text-sm font-semibold text-[#3730a3] dark:text-[#c7d2fe]">Tổng lợi nhuận</p>
+      <p class="text-2xl font-extrabold text-[#312e81] dark:text-white">${formatCurrency(
+                    totalProfit
+                )}</p>
+    </div>
+  </div>
+`;
+            }
+
+            const totalPages =
+                Math.ceil(filteredReportData.length / ITEMS_PER_PAGE) || 1;
+            const start = (page - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const paginatedData = filteredReportData.slice(start, end);
+
+            // Render Table View
+            const tableBody = document.getElementById("report-table-body");
+            if (tableBody) {
+                tableBody.innerHTML =
+                    paginatedData
+                        .map(
+                            (inv) => `
+                    <tr class="border-b border-border last:border-0 hover:bg-muted/50">
+                        <td class="p-3 font-medium text-primary">${inv.invoiceId
+                                }</td>
+                        <td class="p-3">${inv.customerName}</td>
+                        <td class="p-3">${formatDate(
+                                    inv.createdAt.toDate()
+                                )}</td>
+                        <td class="p-3 text-right font-semibold">${formatCurrency(
+                                    inv.totalAmount
+                                )}</td>
+                        <td class="p-3 text-right font-semibold text-green-600 dark:text-green-400">${formatCurrency(
+                                    calculateInvoiceProfit(inv)
+                                )}</td>
+                    </tr>
+                `
+                        )
+                        .join("") ||
+                    `<tr><td colspan="5" class="text-center p-6 text-muted-foreground">Không có dữ liệu báo cáo cho lựa chọn này.</td></tr>`;
+            }
+
+            // Render Card View
+            const cardView = document.getElementById("report-card-view");
+            if (cardView) {
+                cardView.innerHTML =
+                    paginatedData
+                        .map(
+                            (inv) => `
+                    <div class="p-4 border border-border rounded-lg bg-background">
+                        <div class="flex justify-between items-start">
+                             <div>
+                                <p class="font-semibold text-primary">${inv.invoiceId
+                                }</p>
+                                <p class="font-medium">${inv.customerName}</p>
+                            </div>
+                            <p class="text-sm text-muted-foreground">${formatDate(
+                                    inv.createdAt.toDate()
+                                )}</p>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-border grid grid-cols-2 gap-2 text-center">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Doanh thu</p>
+                                <p class="font-semibold">${formatCurrency(
+                                    inv.totalAmount
+                                )}</p>
+                            </div>
+                             <div>
+                                <p class="text-sm text-muted-foreground">Lợi nhuận</p>
+                                <p class="font-semibold text-green-600 dark:text-green-400">${formatCurrency(
+                                    calculateInvoiceProfit(inv)
+                                )}</p>
+                            </div>
+                        </div>
+                    </div>
+                `
+                        )
+                        .join("") ||
+                    `<p class="text-center text-muted-foreground p-6">Không có dữ liệu báo cáo.</p>`;
+            }
+
+            // Product Performance Tables
+            renderProductPerformance(filteredReportData);
+
+            document
+                .querySelectorAll("#report-filter-buttons .filter-btn")
+                .forEach((btn) => {
+                    btn.classList.toggle("active", btn.dataset.period === period);
+                });
+            renderPagination("reports-pagination", page, totalPages, "reports");
+        };
+
+        const renderProductPerformance = (sourceInvoices) => {
+            const productStats = {};
+
+            sourceInvoices.forEach((invoice) => {
+                invoice.items.forEach((item) => {
+                    if (!productStats[item.productId]) {
+                        const productInfo = products.find((p) => p.id === item.productId);
+                        productStats[item.productId] = {
+                            id: item.productId,
+                            name: item.name,
+                            productCode: productInfo ? productInfo.productCode : "N/A",
+                            totalQuantity: 0,
+                            totalProfit: 0,
+                        };
+                    }
+                    const product = products.find((p) => p.id === item.productId);
+                    const costPrice = product ? product.costPrice || 0 : 0;
+                    const profitPerItem = item.unitPrice - costPrice;
+
+                    productStats[item.productId].totalQuantity += item.quantity;
+                    productStats[item.productId].totalProfit +=
+                        profitPerItem * item.quantity;
+                });
+            });
+
+            const statsArray = Object.values(productStats);
+
+            // Top Selling
+            const topSelling = [...statsArray]
+                .sort((a, b) => b.totalQuantity - a.totalQuantity)
+                .slice(0, 10);
+            const topSellingContainer = document.getElementById(
+                "top-selling-products"
+            );
+            topSellingContainer.innerHTML = createProductReportTable(
+                topSelling,
+                "totalQuantity",
+                "Số lượng bán"
+            );
+
+            // Top Profit
+            const topProfit = [...statsArray]
+                .sort((a, b) => b.totalProfit - a.totalProfit)
+                .slice(0, 10);
+            const topProfitContainer = document.getElementById(
+                "top-profit-products"
+            );
+            topProfitContainer.innerHTML = createProductReportTable(
+                topProfit,
+                "totalProfit",
+                "Tổng lợi nhuận"
+            );
+        };
+
+        const createProductReportTable = (data, valueKey, valueLabel) => {
+            if (data.length === 0)
+                return `<p class="text-center text-muted-foreground p-4">Không có dữ liệu.</p>`;
+            return `
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-border">
+                            <th class="p-2 text-left">Sản phẩm</th>
+                            <th class="p-2 text-right">${valueLabel}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data
+                    .map(
+                        (item) => `
+                            <tr class="border-b border-border last:border-b-0">
+                                <td class="p-2 font-semibold">${item.name
+                            }<br><span class="font-normal text-xs text-muted-foreground">${item.productCode
+                            }</span></td>
+                                <td class="p-2 text-right font-bold ${valueKey === "totalProfit"
+                                ? "text-green-600"
+                                : ""
+                            }">
+                                    ${valueKey === "totalProfit"
+                                ? formatCurrency(item[valueKey])
+                                : item[valueKey].toLocaleString("vi-VN")
+                            }
+                                </td>
+                            </tr>
+                        `
+                    )
+                    .join("")}
+                    </tbody>
+                </table>
+            `;
+        };
+
+        // NEW: Calculate total cost for an invoice
+        const calculateInvoiceCost = (invoice) => {
+            return invoice.items.reduce((itemSum, item) => {
+                const product = products.find((p) => p.id === item.productId);
+                const costPrice = product ? product.costPrice || 0 : 0;
+                return itemSum + costPrice * item.quantity;
+            }, 0);
+        };
+
+        const calculateInvoiceProfit = (invoice) => {
+            const itemsProfit = invoice.items.reduce((itemSum, item) => {
+                const product = products.find((p) => p.id === item.productId);
+                const costPrice = product ? product.costPrice || 0 : 0;
+                return itemSum + (item.unitPrice - costPrice) * item.quantity;
+            }, 0);
+            return itemsProfit - (invoice.discount || 0);
+        };
+
+        // UPDATED: exportToExcel includes cost price
+        const exportToExcel = () => {
+            if (filteredReportData.length === 0) {
+                showToast("Không có dữ liệu để xuất.", "error");
+                return;
+            }
+
+            const dataToExport = filteredReportData.map((inv, index) => {
+                const totalCost = calculateInvoiceCost(inv);
+                const profit = calculateInvoiceProfit(inv);
+                return {
+                    STT: index + 1,
+                    "Mã Hóa đơn": inv.invoiceId,
+                    "Ngày tạo": formatDate(inv.createdAt.toDate()),
+                    "Tên Khách": inv.customerName,
+                    "Tổng giá nhập": totalCost,
+                    "Tổng tiền": inv.totalAmount,
+                    "Tiền cọc": inv.paidAmount,
+                    "Số tiền thanh toán": inv.remainingAmount,
+                    "Lợi nhuận": profit,
+                };
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            worksheet["!cols"] = [
+                { wch: 5 },
+                { wch: 12 },
+                { wch: 12 },
+                { wch: 25 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 18 },
+                { wch: 15 },
+            ];
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "BaoCao");
+            XLSX.writeFile(
+                workbook,
+                `BaoCaoTongHop_${new Date().toISOString().slice(0, 10)}.xlsx`
+            );
+            showToast("Xuất Excel thành công!");
+        };
+
+        // Settings Page
+        const getSettingsHTML = () => `
+            <div>
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl font-bold">Cài đặt Thông tin Cửa hàng</h1>
+                </div>
+                <form id="settings-form" class="space-y-8">
+                    ${[1, 2, 3]
+                .map(
+                    (i) => `
+                        <div class="bg-card p-6 rounded-lg shadow-sm border border-border">
+                            <h2 class="text-xl font-semibold border-b border-border pb-3 mb-4">Cửa hàng ${i}</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                <div class="col-span-1 md:col-span-2 flex items-center gap-4">
+                                    <img id="store${i}-logo-preview" src="https://placehold.co/100x100/E2E8F0/4A5568?text=Logo" class="w-24 h-24 rounded-md object-cover bg-secondary">
+                                    <div>
+                                        <label for="store${i}-logo-upload" class="cursor-pointer bg-secondary hover:bg-muted text-secondary-foreground text-sm font-medium py-2 px-3 rounded-md">
+                                            Chọn ảnh...
+                                        </label>
+                                        <input type="file" id="store${i}-logo-upload" data-store="store${i}" class="hidden" accept="image/png, image/jpeg">
+                                        <p class="text-xs text-muted-foreground mt-1">PNG, JPG tối đa 700KB.</p>
+                                        <div id="store${i}-logo-spinner" class="hidden w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin mt-2"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="store${i}-name" class="block text-sm font-medium mb-1">Tên cửa hàng</label>
+                                    <input type="text" id="store${i}-name" data-store="store${i}" data-field="name" class="w-full p-2 border rounded-md bg-background border-border">
+                                </div>
+                                <div>
+                                    <label for="store${i}-slogan" class="block text-sm font-medium mb-1">Slogan</label>
+                                    <input type="text" id="store${i}-slogan" data-store="store${i}" data-field="slogan" class="w-full p-2 border rounded-md bg-background border-border">
+                                </div>
+                                <div>
+                                    <label for="store${i}-hotline" class="block text-sm font-medium mb-1">Hotline</label>
+                                    <input type="text" id="store${i}-hotline" data-store="store${i}" data-field="hotline" class="w-full p-2 border rounded-md bg-background border-border">
+                                </div>
+                                <div>
+                                    <label for="store${i}-address" class="block text-sm font-medium mb-1">Địa chỉ</label>
+                                    <input type="text" id="store${i}-address" data-store="store${i}" data-field="address" class="w-full p-2 border rounded-md bg-background border-border">
+                                </div>
+                            </div>
+                        </div>
+                    `
+                )
+                .join("")}
+                    <div class="flex justify-end mt-6">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-sm">
+                            Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        const renderSettings = () => {
+            const form = document.getElementById("settings-form");
+            if (!form || !stores) return;
+            [1, 2, 3].forEach((i) => {
+                const storeKey = `store${i}`;
+                form.querySelector(`#store${i}-name`).value =
+                    stores[storeKey]?.name || "";
+                form.querySelector(`#store${i}-slogan`).value =
+                    stores[storeKey]?.slogan || "";
+                form.querySelector(`#store${i}-hotline`).value =
+                    stores[storeKey]?.hotline || "";
+                form.querySelector(`#store${i}-address`).value =
+                    stores[storeKey]?.address || "";
+
+                const imgPreview = document.getElementById(`store${i}-logo-preview`);
+                if (stores[storeKey] && stores[storeKey].logoDataUrl) {
+                    imgPreview.src = stores[storeKey].logoDataUrl;
+                } else {
+                    imgPreview.src =
+                        "https://placehold.co/100x100/E2E8F0/4A5568?text=Logo";
+                }
+            });
+        };
+
+        // --- CUSTOMER DETAIL PAGE ---
+        const getCustomerDetailHTML = () => `
+            <div id="customer-detail-content" class="space-y-8">
+                <!-- This content will be rendered by renderCustomerDetail -->
+            </div>
+        `;
+
+        const renderCustomerDetail = () => {
+            const container = document.getElementById("customer-detail-content");
+            if (!container || !currentDetailId) return;
+
+            const customer = customers.find((c) => c.id === currentDetailId);
+            if (!customer) {
+                container.innerHTML = `<p>Không tìm thấy khách hàng.</p>`;
+                return;
+            }
+
+            const customerInvoices = invoices.filter(
+                (inv) => inv.customerId === customer.id
+            );
+            const totalSpent = customerInvoices.reduce(
+                (sum, inv) => sum + inv.totalAmount,
+                0
+            );
+
+            const productPurchaseStats = {};
+            customerInvoices.forEach((inv) => {
+                inv.items.forEach((item) => {
+                    if (!productPurchaseStats[item.productId]) {
+                        productPurchaseStats[item.productId] = {
+                            name: item.name,
+                            quantity: 0,
+                        };
+                    }
+                    productPurchaseStats[item.productId].quantity += item.quantity;
+                });
+            });
+
+            const frequentProducts = Object.values(productPurchaseStats)
+                .sort((a, b) => b.quantity - a.quantity)
+                .slice(0, 5);
+
+            container.innerHTML = `
+                <div>
+                    <button id="back-to-customers-btn" class="mb-6 text-primary hover:text-primary/80 font-semibold flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Quay lại danh sách
+                    </button>
+                    <div class="bg-card p-6 rounded-lg shadow-sm mb-8 border border-border">
+                        <h1 class="text-3xl font-bold">${customer.name}</h1>
+                        <p class="text-muted-foreground">${customer.customerCode
+                }</p>
+                        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                            <p><i class="fa-solid fa-phone w-4 mr-2 text-muted-foreground"></i> ${customer.phone || "Chưa có"
+                }</p>
+                            <p><i class="fa-solid fa-location-dot w-4 mr-2 text-muted-foreground"></i> ${customer.address || "Chưa có"
+                }</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <div class="bg-card p-6 rounded-lg shadow-sm border border-border">
+                            <h2 class="text-xl font-semibold mb-4">Lịch sử mua hàng (${customerInvoices.length
+                } đơn)</h2>
+                            <div class="overflow-x-auto max-h-96">
+                                <table class="w-full text-left text-sm">
+                                    <thead>
+                                        <tr class="border-b border-border">
+                                            <th class="p-3">Mã HĐ</th>
+                                            <th class="p-3">Ngày tạo</th>
+                                            <th class="p-3 text-right">Tổng tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${customerInvoices
+                    .map(
+                        (inv) => `
+                                            <tr class="border-b border-border last:border-0 hover:bg-muted/50">
+                                                <td class="p-3 font-medium text-primary">${inv.invoiceId
+                            }</td>
+                                                <td class="p-3">${formatDate(
+                                inv.createdAt.toDate()
+                            )}</td>
+                                                <td class="p-3 text-right font-semibold">${formatCurrency(
+                                inv.totalAmount
+                            )}</td>
+                                            </tr>
+                                        `
+                    )
+                    .join("") ||
+                `<tr><td colspan="3" class="text-center p-6 text-muted-foreground">Chưa có hóa đơn nào.</td></tr>`
+                }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="bg-card p-6 rounded-lg shadow-sm border border-border">
+                            <h3 class="text-lg font-semibold mb-2">Tổng chi tiêu</h3>
+                            <p class="text-3xl font-bold text-green-600">${formatCurrency(
+                    totalSpent
+                )}</p>
+                        </div>
+                        <div class="bg-card p-6 rounded-lg shadow-sm border border-border">
+                            <h3 class="text-lg font-semibold mb-2">Sản phẩm mua nhiều</h3>
+                            <ul class="space-y-2 text-sm">
+                                ${frequentProducts
+                    .map(
+                        (p) => `
+                                    <li class="flex justify-between">
+                                        <span>${p.name}</span>
+                                        <span class="font-semibold">${p.quantity.toLocaleString(
+                            "vi-VN"
+                        )}</span>
+                                    </li>
+                                `
+                    )
+                    .join("") ||
+                `<li class="text-muted-foreground">Chưa có dữ liệu.</li>`
+                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        // --- MODALS ---
+        // UPDATED: openModal now accepts a title
+        const openModal = (title, content, container = modalContainer) => {
+            container.innerHTML = `
+                <div class="modal-overlay fixed inset-0 z-40 flex items-center justify-center p-4 opacity-0">
+                    <div class="modal-content relative bg-card rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col opacity-0 border border-border">
+                         <div class="p-4 border-b border-border flex justify-between items-center">
+                            <h2 id="modal-title" class="text-xl font-semibold text-card-foreground">${title}</h2>
+                             <button class="modal-close-btn text-muted-foreground hover:text-foreground z-10 h-8 w-8 flex items-center justify-center rounded-full hover:bg-accent">
+                                <i class="fa-solid fa-times text-lg"></i>
+                            </button>
+                         </div>
+                        <div class="overflow-y-auto flex-grow">
+                            ${content}
+                        </div>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => {
+                const overlay = container.querySelector(".modal-overlay");
+                const modalContent = container.querySelector(".modal-content");
+                if (overlay && modalContent) {
+                    overlay.classList.add("open");
+                    modalContent.classList.add("open");
+                }
+            }, 10);
+
+            const overlay = container.querySelector(".modal-overlay");
+            const closeBtn = container.querySelector(".modal-close-btn");
+
+            overlay.addEventListener("click", (e) => {
+                if (e.target === overlay) closeModal(container);
+            });
+            closeBtn.addEventListener("click", () => closeModal(container));
+        };
+
+        const closeModal = (container = modalContainer) => {
+            const overlay = container.querySelector(".modal-overlay");
+            if (overlay) {
+                overlay.style.opacity = "0";
+                overlay.querySelector(".modal-content").style.transform =
+                    "translateY(20px) scale(0.98)";
+                overlay.querySelector(".modal-content").style.opacity = "0";
+                setTimeout(() => {
+                    container.innerHTML = "";
+                }, 300);
+            }
+        };
+
+        // UPDATED: Confirmation modal with new button colors
+        const openConfirmationModal = (message, onConfirm, options = {}) => {
+            const {
+                confirmLabel = "Có, Xóa!",
+                cancelLabel = "Không",
+                title = "Xác nhận hành động",
+                iconClass = "fa-triangle-exclamation",
+                confirmColor = "bg-red-600 hover:bg-red-700",
+            } = options;
+
+            const modalContent = `
+        <div class="p-6 text-center">
+            <i class="fa-solid ${iconClass} text-5xl text-yellow-400 mb-4"></i>
+            <h3 class="text-lg font-semibold mb-2">${title}</h3>
+            <p class="text-muted-foreground mb-6">${message}</p>
+            <div class="flex justify-center gap-4">
+                <button id="confirm-cancel-btn" class="cancel-btn px-4 py-2 rounded-lg font-semibold border">${cancelLabel}</button>
+                <button id="confirm-delete-btn" class="px-6 py-2 rounded-lg ${confirmColor} text-white font-semibold">${confirmLabel}</button>
+            </div>
+        </div>
+    `;
+            openModal(title, modalContent, secondaryModalContainer);
+
+            const confirmBtn = secondaryModalContainer.querySelector(
+                "#confirm-delete-btn"
+            );
+            confirmBtn.onclick = () => {
+                onConfirm();
+                closeModal(secondaryModalContainer);
+            };
+        };
+
+        const getCustomerModalHTML = (customer = {}) => {
+            return `
+                <form id="customer-form" class="p-6 space-y-4">
+                    <input type="hidden" id="customerId" value="${customer.id || ""
+                }">
+                    ${customer.id
+                    ? `<p class="mb-4 text-sm text-muted-foreground">Mã khách hàng: <span class="font-semibold text-foreground">${customer.customerCode}</span></p>`
+                    : ""
+                }
+                    <div>
+                        <label for="customerName" class="block text-sm font-medium mb-1">Tên Khách hàng</label>
+                        <input type="text" id="customerName" value="${customer.name || ""
+                }" class="w-full p-2 border rounded-lg bg-background border-border" required>
+                    </div>
+                    <div>
+                        <label for="customerPhone" class="block text-sm font-medium mb-1">Số điện thoại</label>
+                        <input type="tel" id="customerPhone" value="${customer.phone || ""
+                }" class="w-full p-2 border rounded-lg bg-background border-border">
+                    </div>
+                    <div>
+                        <label for="customerAddress" class="block text-sm font-medium mb-1">Địa chỉ</label>
+                        <input type="text" id="customerAddress" value="${customer.address || ""
+                }" class="w-full p-2 border rounded-lg bg-background border-border">
+                    </div>
+                    <div class="flex justify-end gap-4 pt-4">
+                        <button type="button" class="cancel-btn px-4 py-2 rounded-lg font-semibold border">Hủy</button>
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-semibold">Lưu</button>
+                    </div>
+                </form>
+            `;
+        };
+
+        const getProductModalHTML = (product = {}) => {
+            return `
+                <form id="product-form" class="p-6 space-y-4">
+                    <input type="hidden" id="productId" value="${product.id || ""
+                }">
+                    ${product.id
+                    ? `<p class="mb-4 text-sm text-muted-foreground">Mã sản phẩm: <span class="font-semibold text-foreground">${product.productCode}</span></p>`
+                    : ""
+                }
+                    <div>
+                        <label for="productName" class="block text-sm font-medium mb-1">Tên Sản phẩm</label>
+                        <input type="text" id="productName" value="${product.name || ""
+                }" class="w-full p-2 border rounded-lg bg-background border-border" required>
+                    </div>
+                    <div>
+                        <label for="productCostPrice" class="block text-sm font-medium mb-1">Giá nhập</label>
+                        <input type="number" id="productCostPrice" value="${product.costPrice || ""
+                }" class="w-full p-2 border rounded-lg bg-background border-border" required>
+                    </div>
+                    <div>
+                        <label for="productSellingPrice" class="block text-sm font-medium mb-1">Giá bán</label>
+                        <input type="number" id="productSellingPrice" value="${product.sellingPrice || ""
+                }" class="w-full p-2 border rounded-lg bg-background border-border" required>
+                    </div>
+                    <div class="flex justify-end gap-4 pt-4">
+                        <button type="button" class="cancel-btn px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 font-semibold">Hủy</button>
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-semibold">Lưu</button>
+                    </div>
+                </form>
+            `;
+        };
+
+        const getInvoiceModalHTML = async (invoice = {}) => {
+            const isEditing = !!invoice.id;
+            let invoiceId = isEditing
+                ? invoice.invoiceId
+                : await generateNewCode("invoiceCounter", "HD");
+            const selectedCustomer = isEditing
+                ? customers.find((c) => c.id === invoice.customerId)
+                : null;
+
+            const itemsHTML = (invoice.items || [{ quantity: 1 }])
+                .map(
+                    (item, index) => `
+                <div class="invoice-item-row p-3 border border-border rounded-lg bg-background space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold">Sản phẩm #${index + 1
+                        }</span>
+                        <button type="button" class="remove-item-btn text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-circle-xmark text-lg"></i></button>
+                    </div>
+                    <div class="product-search-wrapper relative">
+                        <input type="text" class="item-product-search w-full p-2 border rounded-lg bg-card" placeholder="Tìm sản phẩm..." autocomplete="off">
+                        <input type="hidden" class="item-product" value="${item.productId || ""}">
+                        <div class="product-search-results absolute z-20 w-full bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto hidden mt-1"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-xs">Số lượng</label>
+                            <input type="number" min="1" value="${item.quantity || 1
+                        }" class="item-quantity w-full p-2 border rounded-lg bg-card text-center" required>
+                        </div>
+                        <div>
+                            <label class="text-xs">Đơn giá</label>
+                            <input type="number" value="${item.unitPrice || 0
+                        }" class="item-price w-full p-2 border rounded-lg bg-card text-right" required>
+                        </div>
+                    </div>
+                    <div class="text-right pt-1">Thành tiền: <span class="item-subtotal font-semibold">0</span></div>
+                </div>
+            `
+                )
+                .join("");
+
+            return `
+            <form id="invoice-form" class="p-4 sm:p-6">
+                <input type="hidden" id="invoiceIdValue" value="${invoice.id || ""
+                }">
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium">Mã hóa đơn</label>
+                            <p id="invoiceIdDisplay" class="font-bold text-lg text-primary">${invoiceId}</p>
+                        </div>
+                        <div>
+                            <label for="invoiceDate" class="block text-sm font-medium mb-1">Ngày đặt hàng</label>
+                            <input type="date" id="invoiceDate" value="${invoice.createdAt
+                    ? invoice.createdAt
+                        .toDate()
+                        .toISOString()
+                        .slice(0, 10)
+                    : new Date().toISOString().slice(0, 10)
+                }" class="w-full p-2 border rounded-lg bg-background border-border">
+                        </div>
+                        <div>
+                            <label for="invoicePrintColor" class="block text-sm font-medium mb-1">Màu in</label>
+                            <input type="text" id="invoicePrintColor" value="${invoice.printColor || ""
+                }" class="w-full p-2 border rounded-lg bg-background border-border">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="customerSearchInput" class="block text-sm font-medium mb-1">Khách hàng</label>
+                        <div class="flex gap-2 items-start">
+                            <div class="relative flex-grow">
+                                <input type="text" id="customerSearchInput" placeholder="Tìm kiếm tên, SĐT hoặc mã KH..." class="w-full p-2 border rounded-lg bg-background border-border" value="${selectedCustomer ? selectedCustomer.name : ""
+                }" autocomplete="off">
+                                <input type="hidden" id="selectedCustomerId" value="${selectedCustomer ? selectedCustomer.id : ""
+                }">
+                                <div id="customerSearchResults" class="absolute z-20 w-full bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto hidden mt-1"></div>
+                            </div>
+                            <button type="button" id="modal-add-customer-btn" class="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 h-[42px] aspect-square flex items-center justify-center" title="Thêm khách hàng mới">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <h3 class="font-semibold text-lg pt-4">Danh sách sản phẩm</h3>
+                    <div id="invoice-items-body" class="space-y-3">
+                        ${itemsHTML}
+                    </div>
+                    <button type="button" id="add-item-btn" class="w-full mt-2 text-primary hover:text-primary/80 flex items-center justify-center gap-1 font-semibold py-2 border-2 border-dashed border-border rounded-lg hover:border-primary bg-sky-50 hover:bg-sky-100 dark:bg-sky-900/20 dark:hover:bg-sky-900/40">
+                        <i class="fa-solid fa-plus-circle mr-1"></i> Thêm sản phẩm
+                    </button>
+
+                    <div class="mt-6 flex flex-col items-end">
+                        <div class="w-full md:w-2/3 lg:w-1/2 space-y-2">
+                            <div class="flex justify-between"><span class="text-muted-foreground">Tổng cộng</span><span id="invoice-subtotal" class="font-semibold">0</span></div>
+                            <div class="flex justify-between items-center"><span class="text-muted-foreground">Giảm giá</span><input type="number" id="invoiceDiscount" value="${invoice.discount || 0
+                }" class="w-32 p-1 border rounded-lg bg-background border-border text-right"></div>
+                            <div class="flex justify-between border-t border-border pt-2"><span class="font-bold text-lg">Tổng tiền</span><span id="invoice-total" class="font-bold text-lg text-primary">0</span></div>
+                            <div class="flex justify-between items-center"><span class="text-muted-foreground">Đã cọc</span><input type="number" id="invoicePaid" value="${invoice.paidAmount || 0
+                }" class="w-32 p-1 border rounded-lg bg-background border-border text-right"></div>
+                            <div class="flex justify-between"><span class="font-semibold">Còn lại</span><span id="invoice-remaining" class="font-semibold">0</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-end gap-4 mt-8 pt-6 border-t border-border">
+                    <button type="button" class="cancel-btn px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 font-semibold order-last sm:order-first">Hủy</button>
+                    <button type="submit" name="save" class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-bold">Lưu</button>
+                    <button type="submit" name="saveAndExport" class="px-6 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 font-bold flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-camera-retro"></i> Lưu & Xuất ảnh
+                    </button>
+                </div>
+            </form>
+            `;
+        };
+
+        // --- INVOICE FORM LOGIC ---
+        const setupInvoiceForm = () => {
+            const form = document.getElementById("invoice-form");
+            if (!form) return;
+
+            const searchInput = document.getElementById("customerSearchInput");
+            const searchResults = document.getElementById("customerSearchResults");
+            const selectedCustomerIdInput =
+                document.getElementById("selectedCustomerId");
+
+            searchInput.addEventListener("input", () => {
+                const query = searchInput.value.toLowerCase().trim();
+                selectedCustomerIdInput.value = "";
+                if (!query) {
+                    searchResults.innerHTML = "";
+                    searchResults.classList.add("hidden");
+                    return;
+                }
+                const filtered = customers.filter(
+                    (c) =>
+                        c.name.toLowerCase().includes(query) ||
+                        (c.phone && c.phone.includes(query)) ||
+                        (c.customerCode && c.customerCode.toLowerCase().includes(query))
+                );
+                if (filtered.length > 0) {
+                    searchResults.innerHTML = filtered
+                        .map(
+                            (c) =>
+                                `<div class="p-2 hover:bg-accent cursor-pointer" data-id="${c.id
+                                }" data-name="${c.name}">${c.customerCode} - ${c.name} - ${c.phone || "N/A"
+                                }</div>`
+                        )
+                        .join("");
+                    searchResults.classList.remove("hidden");
+                } else {
+                    searchResults.classList.add("hidden");
+                }
+            });
+
+            searchResults.addEventListener("click", (e) => {
+                const target = e.target.closest("[data-id]");
+                if (target) {
+                    selectedCustomerIdInput.value = target.dataset.id;
+                    searchInput.value = target.dataset.name;
+                    searchResults.classList.add("hidden");
+                }
+            });
+
+            document.addEventListener("click", (e) => {
+                if (
+                    searchInput &&
+                    !searchInput.contains(e.target) &&
+                    searchResults &&
+                    !searchResults.contains(e.target)
+                ) {
+                    searchResults.classList.add("hidden");
+                }
+            });
+
+            const updateTotals = () => {
+                let subtotal = 0;
+                document.querySelectorAll(".invoice-item-row").forEach((row) => {
+                    const quantity =
+                        parseFloat(row.querySelector(".item-quantity").value) || 0;
+                    const price =
+                        parseFloat(row.querySelector(".item-price").value) || 0;
+                    const itemSubtotal = quantity * price;
+                    row.querySelector(".item-subtotal").textContent =
+                        formatCurrency(itemSubtotal);
+                    subtotal += itemSubtotal;
+                });
+
+                const discount =
+                    parseFloat(document.getElementById("invoiceDiscount").value) || 0;
+                const paid =
+                    parseFloat(document.getElementById("invoicePaid").value) || 0;
+                const total = subtotal - discount;
+                const remaining = total - paid;
+
+                document.getElementById("invoice-subtotal").textContent =
+                    formatCurrency(subtotal);
+                document.getElementById("invoice-total").textContent =
+                    formatCurrency(total);
+                document.getElementById("invoice-remaining").textContent =
+                    formatCurrency(remaining);
+            };
+
+            const setupProductSearch = (row) => {
+                const input = row.querySelector(".item-product-search");
+                const results = row.querySelector(".product-search-results");
+                const hiddenInput = row.querySelector(".item-product");
+                const showResults = () => {
+                    const query = input.value.toLowerCase().trim();
+                    const filtered = products
+                        .filter(
+                            (p) =>
+                                !query ||
+                                p.name.toLowerCase().includes(query) ||
+                                (p.productCode && p.productCode.toLowerCase().includes(query))
+                        )
+                        .sort((a, b) => (a.productCode || "").localeCompare(b.productCode || ""));
+                    if (filtered.length > 0) {
+                        results.innerHTML = filtered
+                            .map(
+                                (p) =>
+                                    `<div class="p-2 hover:bg-accent cursor-pointer" data-id="${p.id}" data-label="${p.productCode} - ${p.name}">${p.productCode} - ${p.name}</div>`
+                            )
+                            .join("");
+                        results.classList.remove("hidden");
+                    } else {
+                        results.classList.add("hidden");
+                    }
+                };
+                input.addEventListener("input", showResults);
+                input.addEventListener("focus", showResults);
+                results.addEventListener("click", (e) => {
+                    const target = e.target.closest("[data-id]");
+                    if (target) {
+                        hiddenInput.value = target.dataset.id;
+                        input.value = target.dataset.label;
+                        hiddenInput.dispatchEvent(new Event("change", { bubbles: true }));
+                        results.classList.add("hidden");
+                    }
+                });
+                document.addEventListener("click", (e) => {
+                    if (!row.contains(e.target)) {
+                        results.classList.add("hidden");
+                    }
+                });
+                if (hiddenInput.value) {
+                    const prod = products.find((p) => p.id === hiddenInput.value);
+                    if (prod) {
+                        input.value = `${prod.productCode} - ${prod.name}`;
+                    }
+                }
+            };
+
+            form.addEventListener("input", (e) => {
+                if (
+                    e.target.closest(".invoice-item-row") ||
+                    e.target.id === "invoiceDiscount" ||
+                    e.target.id === "invoicePaid"
+                ) {
+                    updateTotals();
+                }
+            });
+
+            form.addEventListener("change", (e) => {
+                if (e.target.classList.contains("item-product")) {
+                    const selectedProductId = e.target.value;
+                    const product = products.find((p) => p.id === selectedProductId);
+                    if (product) {
+                        const row = e.target.closest(".invoice-item-row");
+                        row.querySelector(".item-price").value = product.sellingPrice;
+                        updateTotals();
+                    }
+                }
+            });
+
+            document
+                .getElementById("add-item-btn")
+                .addEventListener("click", () => {
+                    const container = document.getElementById("invoice-items-body");
+                    const newIndex = container.children.length + 1;
+                    const newRow = document.createElement("div");
+                    newRow.className =
+                        "invoice-item-row p-3 border border-border rounded-lg bg-background space-y-2";
+                    newRow.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold">Sản phẩm #${newIndex}</span>
+                        <button type="button" class="remove-item-btn text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-circle-xmark text-lg"></i></button>
+                    </div>
+                    <div class="product-search-wrapper relative">
+                        <input type="text" class="item-product-search w-full p-2 border rounded-lg bg-card" placeholder="Tìm sản phẩm..." autocomplete="off">
+                        <input type="hidden" class="item-product" value="">
+                        <div class="product-search-results absolute z-20 w-full bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto hidden mt-1"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-xs">Số lượng</label>
+                            <input type="number" min="1" value="1" class="item-quantity w-full p-2 border rounded-lg bg-card text-center" required>
+                        </div>
+                        <div>
+                            <label class="text-xs">Đơn giá</label>
+                            <input type="number" value="0" class="item-price w-full p-2 border rounded-lg bg-card text-right" required>
+                        </div>
+                    </div>
+                    <div class="text-right pt-1">Thành tiền: <span class="item-subtotal font-semibold">0</span></div>
+                `;
+                    container.appendChild(newRow);
+                    setupProductSearch(newRow);
+                });
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const saveAndExport =
+                    e.submitter && e.submitter.name === "saveAndExport";
+
+                const customerId =
+                    document.getElementById("selectedCustomerId").value;
+                if (!customerId) {
+                    showToast("Vui lòng chọn một khách hàng.", "error");
+                    return;
+                }
+
+                const invoiceIdValue =
+                    document.getElementById("invoiceIdValue").value;
+                const selectedCustomer = customers.find((c) => c.id === customerId);
+
+                const items = Array.from(
+                    document.querySelectorAll(".invoice-item-row")
+                )
+                    .map((row) => {
+                        const productId = row.querySelector(".item-product").value;
+                        const product = products.find((p) => p.id === productId);
+                        return {
+                            productId: productId,
+                            name: product ? product.name : "",
+                            quantity: parseFloat(row.querySelector(".item-quantity").value),
+                            unitPrice: parseFloat(row.querySelector(".item-price").value),
+                        };
+                    })
+                    .filter((item) => item.productId);
+
+                if (items.length === 0) {
+                    showToast("Vui lòng thêm ít nhất một sản phẩm.", "error");
+                    return;
+                }
+
+                const subtotal = items.reduce(
+                    (sum, item) => sum + item.quantity * item.unitPrice,
+                    0
+                );
+                const discount =
+                    parseFloat(document.getElementById("invoiceDiscount").value) || 0;
+                const paidAmount =
+                    parseFloat(document.getElementById("invoicePaid").value) || 0;
+                const totalAmount = subtotal - discount;
+
+                const invoiceData = {
+                    invoiceId: document.getElementById("invoiceIdDisplay").textContent,
+                    createdAt: new Date(document.getElementById("invoiceDate").value),
+                    printColor: document.getElementById("invoicePrintColor").value,
+                    customerId: customerId,
+                    customerName: selectedCustomer ? selectedCustomer.name : "Khách lẻ",
+                    customerPhone: selectedCustomer ? selectedCustomer.phone : "",
+                    customerAddress: selectedCustomer ? selectedCustomer.address : "",
+                    items: items,
+                    subtotal: subtotal,
+                    discount: discount,
+                    totalAmount: totalAmount,
+                    paidAmount: paidAmount,
+                    remainingAmount: totalAmount - paidAmount,
+                };
+
+                const savedId = await saveData(
+                    "invoices",
+                    invoiceData,
+                    invoiceIdValue || null
+                );
+
+                if (savedId) {
+                    if (saveAndExport) {
+                        const finalInvoiceData = {
+                            id: savedId,
+                            ...invoiceData,
+                            createdAt: {
+                                toDate: () => invoiceData.createdAt,
+                            },
+                        };
+                        openStoreSelectionModal(finalInvoiceData, selectedCustomer);
+                    } else {
+                        closeModal();
+                    }
+                }
+            });
+
+            document.querySelectorAll(".invoice-item-row").forEach((row) => {
+                setupProductSearch(row);
+                const select = row.querySelector(".item-product");
+                const priceInput = row.querySelector(".item-price");
+                if (select.value &&
+                    (!priceInput.value || parseFloat(priceInput.value) === 0)) {
+                    select.dispatchEvent(new Event("change", { bubbles: true }));
+                }
+            });
+            updateTotals();
+        };
+
+        // --- ID & CODE GENERATION ---
+        const generateNewCode = async (counterName, prefix) => {
+            const counterRef = doc(
+                db,
+                `artifacts/${appId}/users/${userId}/counters/${counterName}`
+            );
+            let newIdNumber = 1;
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const counterDoc = await transaction.get(counterRef);
+                    if (!counterDoc.exists()) {
+                        newIdNumber = 1;
+                    } else {
+                        newIdNumber = counterDoc.data().lastId + 1;
+                    }
+                    transaction.set(counterRef, { lastId: newIdNumber });
+                });
+            } catch (e) {
+                console.error("Transaction failed, falling back to simple count:", e);
+                const collectionRef = collection(
+                    db,
+                    `artifacts/${appId}/users/${userId}/${counterName.replace(
+                        "Counter",
+                        "s"
+                    )}`
+                );
+                const snapshot = await getDocs(collectionRef);
+                newIdNumber = snapshot.size + 1;
+            }
+            return prefix + String(newIdNumber).padStart(6, "0");
+        };
+
+        // --- INVOICE VIEW & EXPORT ---
+
+        // UPDATED: Added colors for better readability
+        const getInvoiceViewModalHTML = (invoice, customer) => {
+            const itemsHTML = invoice.items
+                .map(
+                    (item) => `
+                <tr class="border-b border-border last:border-0">
+                    <td class="py-2 px-3">${item.name}</td>
+                    <td class="py-2 px-3 text-center">${item.quantity}</td>
+                    <td class="py-2 px-3 text-right">${formatCurrency(
+                        item.unitPrice
+                    )}</td>
+                    <td class="py-2 px-3 text-right font-medium">${formatCurrency(
+                        item.quantity * item.unitPrice
+                    )}</td>
+                </tr>
+            `
+                )
+                .join("");
+
+            return `
+                <div class="p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4">
+                        <div>
+                            <p class="text-muted-foreground">Ngày tạo: <span class="font-medium text-foreground">${formatDate(
+                invoice.createdAt.toDate()
+            )}</span></p>
+                        </div>
+                        <button id="export-invoice-image-btn" data-id="${invoice.id
+                }" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center w-full sm:w-auto justify-center">
+                            <i class="fa-solid fa-camera-retro mr-2"></i> Xuất ảnh hóa đơn
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-secondary rounded-lg">
+                        <div>
+                            <h3 class="font-semibold mb-2 text-primary">Khách hàng:</h3>
+                            <p class="font-bold text-lg">${customer.name}</p>
+                            <p class="text-muted-foreground">${customer.phone || "Không có SĐT"
+                }</p>
+                            <p class="text-muted-foreground">${customer.address || "Không có địa chỉ"
+                }</p>
+                        </div>
+                        <div>
+                             <h3 class="font-semibold mb-2 text-primary">Thông tin đơn hàng:</h3>
+                             <p class="text-muted-foreground">Màu in: <span class="font-medium text-foreground">${invoice.printColor || "N/A"
+                }</span></p>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-muted/50">
+                                <tr>
+                                    <th class="py-2 px-3 font-semibold">Sản phẩm</th>
+                                    <th class="py-2 px-3 text-center font-semibold">Số lượng</th>
+                                    <th class="py-2 px-3 text-right font-semibold">Đơn giá</th>
+                                    <th class="py-2 px-3 text-right font-semibold">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>${itemsHTML}</tbody>
+                        </table>
+                    </div>
+                    <div class="mt-6 flex justify-end">
+                        <div class="w-full md:w-1/2 space-y-2 text-right">
+                            <div class="flex justify-between"><span class="text-muted-foreground">Tổng cộng:</span><span>${formatCurrency(
+                    invoice.subtotal
+                )}</span></div>
+                            <div class="flex justify-between"><span class="text-muted-foreground">Giảm giá:</span><span>-${formatCurrency(
+                    invoice.discount
+                )}</span></div>
+                            <div class="flex justify-between font-bold text-lg border-t pt-2 mt-2"><span class="text-primary">Tổng thanh toán:</span><span class="text-primary">${formatCurrency(
+                    invoice.totalAmount
+                )}</span></div>
+                            <div class="flex justify-between"><span class="text-muted-foreground">Đã thanh toán:</span><span>${formatCurrency(
+                    invoice.paidAmount
+                )}</span></div>
+                            <div class="flex justify-between font-semibold text-lg text-green-600 dark:text-green-400"><span>Còn lại:</span><span>${formatCurrency(
+                    invoice.remainingAmount
+                )}</span></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        // UPDATED: openStoreSelectionModal now uses the new openModal and has colored buttons
+        const openStoreSelectionModal = (invoice, customer) => {
+            const availableStores = Object.entries(stores)
+                .map(([key, value]) => ({ key, ...value }))
+                .filter((store) => store.name);
+
+            if (availableStores.length === 0) {
+                showToast(
+                    "Vui lòng cấu hình thông tin cửa hàng trong Cài đặt trước.",
+                    "error"
+                );
+                return;
+            }
+
+            const modalContent = `
+                <div class="p-6">
+                    <div class="flex flex-col justify-center gap-4">
+                        ${availableStores
+                    .map(
+                        (store) => `
+                            <button data-store-key="${store.key}" class="store-select-btn px-6 py-3 rounded-lg bg-sky-500 text-white hover:bg-sky-600 w-full font-semibold transition-colors">${store.name}</button>
+                        `
+                    )
+                    .join("")}
+                    </div>
+                     <button class="cancel-btn mt-6 w-full px-4 py-2 rounded-lg bg-secondary hover:bg-muted font-semibold">Hủy</button>
+                </div>
+            `;
+            openModal(
+                "Chọn cửa hàng để xuất ảnh",
+                modalContent,
+                secondaryModalContainer
+            );
+
+            secondaryModalContainer
+                .querySelectorAll(".store-select-btn")
+                .forEach((btn) => {
+                    btn.onclick = () => {
+                        const storeKey = btn.dataset.storeKey;
+                        const store = stores[storeKey];
+
+                        closeModal(secondaryModalContainer);
+                        closeModal(modalContainer);
+
+                        generateAndDownloadInvoices(invoice, customer, store);
+                    };
+                });
+        };
+
+        // UPDATED: getInvoiceHTMLForExport to improve table UI and add footer
+        const getInvoiceHTMLForExport = (
+            invoice,
+            customer,
+            store,
+            showPrices,
+            qrCodeDataURL
+        ) => {
+            const minRows = 5;
+
+            let itemRowsHTML = invoice.items
+                .map(
+                    (item, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td class="text-center">${item.name}</td>
+            <td>${item.quantity.toLocaleString("vi-VN")}</td>
+            ${showPrices
+                            ? `<td>${(item.unitPrice || 0).toLocaleString("vi-VN")}</td>`
+                            : ""
+                        }
+            ${showPrices
+                            ? `<td>${(item.quantity * item.unitPrice).toLocaleString(
+                                "vi-VN"
+                            )}</td>`
+                            : ""
+                        }
+        </tr>
+    `
+                )
+                .join("");
+
+            const emptyRowsCount = Math.max(0, minRows - invoice.items.length);
+            if (emptyRowsCount > 0) {
+                for (let i = 0; i < emptyRowsCount; i++) {
+                    itemRowsHTML += `
+                <tr>
+                    <td>${invoice.items.length + i + 1}</td>
+                    <td class="text-center">&nbsp;</td>
+                    <td>&nbsp;</td>
+                    ${showPrices ? `<td>&nbsp;</td>` : ""}
+                    ${showPrices ? `<td>&nbsp;</td>` : ""}
+                </tr>
+            `;
+                }
+            }
+
+            const totalsHTML = showPrices
+                ? `
+  <div style="margin-top: 20px; display: flex; flex-direction: column; align-items: flex-end;">
+    <div style="display: flex; flex-direction: column; width: 280px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span><strong>Tổng tiền hàng:</strong></span>
+        <span>${(invoice.totalPrice || 0).toLocaleString("vi-VN")} VNĐ</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span><strong>Giảm giá:</strong></span>
+        <span>${(invoice.discount || 0).toLocaleString("vi-VN")} VNĐ</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span><strong>Tổng thanh toán:</strong></span>
+        <span>${(invoice.finalTotal || 0).toLocaleString("vi-VN")} VNĐ</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span><strong>Đã thanh toán:</strong></span>
+        <span>${(invoice.amountPaid || 0).toLocaleString("vi-VN")} VNĐ</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-top: 8px; font-weight: bold;">
+        <span>Còn lại (COD):</span>
+        <span>${(invoice.remainingAmount || 0).toLocaleString(
+                    "vi-VN"
+                )} VNĐ</span>
+      </div>
+    </div>
+  </div>
+`
+                : "";
+
+            const footerHTML = `
+        <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 15px; font-size: 12px; color: #475569; text-align: center;">
+            <p style="margin: 2px 0;">Lưu ý: Quý khách vui lòng thanh toán số tiền còn lại cho nhân viên giao hàng và kiểm tra kỹ số lượng sản phẩm khi nhận hàng.</p>
+            <p style="margin: 2px 0;">Khi đã thanh toán, nếu đơn hàng có thiếu sót, cửa hàng không chịu trách nhiệm.</p>
+            <p style="margin-top: 10px;"><i>Cảm ơn quý khách đã luôn tin tưởng và đặt hàng tại ${store.name}!</i></p>
+        </div>
+    `;
+
+            return `
+        <div class="invoice-export-template">
+            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
+                ${store.logoDataUrl
+                    ? `<img src="${store.logoDataUrl}" style="width: 100px; height: 100px; object-fit: contain;">`
+                    : ""
+                }
+                <div style="text-align: left;">
+                    <h1 style="font-size: 24px; font-weight: bold; margin: 0;">${store.name
+                }</h1>
+                    <p style="margin: 5px 0;">${store.slogan || ""}</p>
+                    <p style="margin: 5px 0;"><strong>HOTLINE: ${store.hotline || ""
+                }</strong></p>
+                    <p style="margin: 5px 0;">ĐỊA CHỈ: ${store.address || ""
+                }</p>
+                </div>
+            </div>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin-bottom: 15px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="font-size: 20px; font-weight: bold; margin: 0;">HÓA ĐƠN BÁN HÀNG</h2>
+                <p style="margin: 5px 0;">Mã hóa đơn: ${invoice.invoiceId}</p>
+            </div>
+            <div class="info-grid" style="margin-bottom: 20px;">
+                <div class="info-item">
+  <label>Ngày giao hàng:</label> 
+  <strong>${formatDate(
+                    new Date(invoice.createdAt.toDate().getTime() + 3 * 24 * 60 * 60 * 1000)
+                )}</strong>
+</div>
+
+                <div class="info-item"><label>Màu in:</label> <strong>${invoice.printColor || "Đen"
+                }</strong></div>
+                <div class="info-item"><label>Tên khách hàng:</label> <strong>${customer.name
+                }</strong></div>
+                <div class="info-item"><label>SĐT:</label> <strong>${customer.phone || ""
+                }</strong></div>
+                <div class="info-item" style="grid-column: span 2;"><label>Địa chỉ:</label> <strong>${customer.address || ""
+                }</strong></div>
+            </div>
+
+            ${!showPrices
+                    ? `
+                <div style="text-align: left; font-size: 16px; padding-left: 4px; margin-bottom: 8px;">
+                    <strong>SỐ TIỀN THU HỘ (COD): ${(
+                        invoice.remainingAmount || 0
+                    ).toLocaleString("vi-VN")} VNĐ</strong>
+                </div>
+            `
+                    : ""
+                }
+
+
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">STT</th>
+                        <th class="text-center" style="width: ${showPrices ? "45%" : "75%"
+                }">Tên sản phẩm</th>
+                        <th style="width: 15%;">Số lượng</th>
+                        ${showPrices
+                    ? '<th style="width: 15%;">Đơn giá</th>'
+                    : ""
+                }
+                        ${showPrices
+                    ? '<th style="width: 20%;">Thành tiền</th>'
+                    : ""
+                }
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemRowsHTML}
+                </tbody>
+            </table>
+
+            ${totalsHTML}
+            ${footerHTML}
+        </div>
+    `;
+        };
+
+        const generateQRCodeDataURL = (text) => {
+            return new Promise((resolve) => {
+                const container = document.getElementById("qrcode-container");
+                container.innerHTML = "";
+                new QRCode(container, {
+                    text: text,
+                    width: 128,
+                    height: 128,
+                    correctLevel: QRCode.CorrectLevel.H,
+                });
+                setTimeout(() => {
+                    const img = container.querySelector("img");
+                    if (img && img.src) {
+                        resolve(img.src);
+                    } else {
+                        const canvas = container.querySelector("canvas");
+                        if (canvas) {
+                            resolve(canvas.toDataURL());
+                        } else {
+                            console.error("QR Code generation failed.");
+                            resolve("");
+                        }
+                    }
+                }, 100);
+            });
+        };
+
+        const generateAndDownloadInvoices = async (invoice, customer, store) => {
+            const exportContainer = document.getElementById(
+                "invoice-export-container"
+            );
+            loadingSpinner.classList.remove("hidden");
+
+            const download = (canvas, filename) => {
+                const link = document.createElement("a");
+                link.download = filename;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            };
+
+            try {
+                const qrCodeDataURL = await generateQRCodeDataURL(invoice.invoiceId);
+                if (!qrCodeDataURL) {
+                    showToast("Không thể tạo mã QR.", "error");
+                    throw new Error("QR Code generation failed");
+                }
+
+                loadingText.textContent = "Đang tạo hóa đơn đầy đủ...";
+                const htmlWithPrices = getInvoiceHTMLForExport(
+                    invoice,
+                    customer,
+                    store,
+                    true,
+                    qrCodeDataURL
+                );
+                exportContainer.innerHTML = htmlWithPrices;
+                const canvasWithPrices = await html2canvas(
+                    exportContainer.querySelector(".invoice-export-template"),
+                    { scale: 2, useCORS: true }
+                );
+                download(
+                    canvasWithPrices,
+                    `HoaDon_${store.name.replace(/\s/g, "")}_${invoice.invoiceId
+                    }_Full.png`
+                );
+
+                await new Promise((resolve) => setTimeout(resolve, 500));
+
+                loadingText.textContent = "Đang tạo hóa đơn giao hàng...";
+                const htmlWithoutPrices = getInvoiceHTMLForExport(
+                    invoice,
+                    customer,
+                    store,
+                    false,
+                    qrCodeDataURL
+                );
+                exportContainer.innerHTML = htmlWithoutPrices;
+                const canvasWithoutPrices = await html2canvas(
+                    exportContainer.querySelector(".invoice-export-template"),
+                    { scale: 2, useCORS: true }
+                );
+                download(
+                    canvasWithoutPrices,
+                    `GiaoHang_${store.name.replace(/\s/g, "")}_${invoice.invoiceId
+                    }_NoPrice.png`
+                );
+            } catch (error) {
+                console.error("Error generating invoice images:", error);
+                showToast("Lỗi khi tạo ảnh hóa đơn.", "error");
+            } finally {
+                loadingSpinner.classList.add("hidden");
+                loadingText.textContent = "Đang tải...";
+                exportContainer.innerHTML = "";
+            }
+        };
+
+        // --- UTILITY FUNCTIONS ---
+        const formatCurrency = (amount) =>
+            new Intl.NumberFormat("vi-VN", {
+                style: "currency",
+                currency: "VND",
+            }).format(amount || 0);
+        const formatDate = (date) =>
+            date ? new Date(date).toLocaleDateString("vi-VN") : "";
+
+        const showToast = (message, type = "success") => {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+
+            const iconClass =
+                type === "success"
+                    ? "fa-solid fa-circle-check"
+                    : "fa-solid fa-circle-xmark";
+            toast.innerHTML = `<div class="toast-icon"><i class="${iconClass} ${type}"></i></div><span>${message}</span>`;
+
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add("show");
+            }, 100);
+            setTimeout(() => {
+                toast.classList.remove("show");
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        };
+
+        // NEW: Function to download a sample Excel file for products
+        const downloadSampleExcel = () => {
+            const sampleData = [
+                {
+                    "Tên sản phẩm": "Áo Thun Cotton",
+                    "Giá nhập": 100000,
+                    "Giá bán": 180000,
+                },
+                {
+                    "Tên sản phẩm": "Quần Jeans Rách Gối",
+                    "Giá nhập": 250000,
+                    "Giá bán": 450000,
+                },
+                {
+                    "Tên sản phẩm": "Váy Hoa Mùa Hè",
+                    "Giá nhập": 180000,
+                    "Giá bán": 320000,
+                },
+            ];
+            const worksheet = XLSX.utils.json_to_sheet(sampleData);
+            worksheet["!cols"] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }];
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Sản phẩm");
+            XLSX.writeFile(workbook, "File_Mau_San_Pham.xlsx");
+            showToast("Đã tải file mẫu thành công!");
+        };
+
+        // --- EVENT LISTENERS ---
+        loginButton.addEventListener("click", signInWithGoogle);
+        logoutButton.addEventListener("click", signOutUser);
+        document
+            .getElementById("mobile-logout-button")
+            .addEventListener("click", signOutUser);
+
+        userMenuButton.addEventListener("click", () =>
+            userMenu.classList.toggle("hidden")
+        );
+        document.addEventListener("click", (e) => {
+            if (
+                !userMenuButton.contains(e.target) &&
+                !userMenu.contains(e.target)
+            ) {
+                userMenu.classList.add("hidden");
+            }
+        });
+
+        mobileMenuButton.addEventListener("click", () => {
+            const isExpanded =
+                mobileMenuButton.getAttribute("aria-expanded") === "true";
+            mobileMenuButton.setAttribute("aria-expanded", !isExpanded);
+            mobileMenu.classList.toggle("hidden");
+            mobileMenuIcon.classList.toggle("fa-bars");
+            mobileMenuIcon.classList.toggle("fa-times");
+        });
+
+        document
+            .getElementById("desktop-nav-links")
+            .addEventListener("click", (e) => {
+                if (e.target.matches(".nav-link")) {
+                    e.preventDefault();
+                    showPage(e.target.dataset.page);
+                }
+            });
+        document
+            .getElementById("mobile-nav-links")
+            .addEventListener("click", (e) => {
+                if (e.target.matches(".nav-link")) {
+                    e.preventDefault();
+                    showPage(e.target.dataset.page);
+                }
+            });
+
+        document
+            .getElementById("create-invoice-fab")
+            .addEventListener("click", async () => {
+                const title = "Tạo Hóa đơn mới";
+                const content = await getInvoiceModalHTML();
+                openModal(title, content);
+                setupInvoiceForm();
+            });
+
+        // Event delegation for dynamic content
+        document.body.addEventListener("click", async (e) => {
+            const cancelBtn = e.target.closest(".cancel-btn");
+            if (cancelBtn) {
+                const modal = cancelBtn.closest(".modal-overlay");
+                if (modal) {
+                    if (modal.parentElement.id === "secondary-modal-container") {
+                        closeModal(secondaryModalContainer);
+                    } else {
+                        closeModal(modalContainer);
+                    }
+                }
+            }
+            if (e.target.closest("#add-customer-btn")) {
+                openModal("Thêm Khách hàng", getCustomerModalHTML());
+            }
+            if (e.target.closest("#add-product-btn")) {
+                openModal("Thêm Sản phẩm", getProductModalHTML());
+            }
+
+            const viewCustomerBtn = e.target.closest(".view-customer-btn");
+            if (viewCustomerBtn) {
+                showPage("customer-detail-page", {
+                    customerId: viewCustomerBtn.dataset.id,
+                });
+            }
+            const editCustomerBtn = e.target.closest(".edit-customer-btn");
+            if (editCustomerBtn) {
+                const customer = customers.find(
+                    (c) => c.id === editCustomerBtn.dataset.id
+                );
+                if (customer)
+                    openModal("Sửa Khách hàng", getCustomerModalHTML(customer));
+            }
+            const deleteCustomerBtn = e.target.closest(".delete-customer-btn");
+            if (deleteCustomerBtn) {
+                const customerId = deleteCustomerBtn.dataset.id;
+                const isUsed = invoices.some((inv) => inv.customerId === customerId);
+                if (isUsed) {
+                    showToast(
+                        "Khách hàng này đã có trong hóa đơn, không thể xóa.",
+                        "error"
+                    );
+                } else {
+                    deleteData("customers", customerId);
+                }
+            }
+
+            const editProductBtn = e.target.closest(".edit-product-btn");
+            if (editProductBtn) {
+                const product = products.find(
+                    (p) => p.id === editProductBtn.dataset.id
+                );
+                if (product) openModal("Sửa Sản phẩm", getProductModalHTML(product));
+            }
+            const deleteProductBtn = e.target.closest(".delete-product-btn");
+            if (deleteProductBtn) {
+                const productId = deleteProductBtn.dataset.id;
+                const isUsed = invoices.some((inv) =>
+                    inv.items.some((item) => item.productId === productId)
+                );
+                if (isUsed) {
+                    showToast(
+                        "Sản phẩm này đã có trong hóa đơn, không thể xóa.",
+                        "error"
+                    );
+                } else {
+                    deleteData("products", productId);
+                }
+            }
+
+            const viewInvoiceBtn = e.target.closest(".view-invoice-btn");
+            if (viewInvoiceBtn) {
+                const invoice = invoices.find(
+                    (inv) => inv.id === viewInvoiceBtn.dataset.id
+                );
+                if (invoice) {
+                    const customer = customers.find(
+                        (c) => c.id === invoice.customerId
+                    ) || {
+                        name: invoice.customerName,
+                        phone: invoice.customerPhone,
+                        address: invoice.customerAddress,
+                    };
+                    openModal(
+                        `Chi tiết Hóa đơn ${invoice.invoiceId}`,
+                        getInvoiceViewModalHTML(invoice, customer)
+                    );
+                }
+            }
+            const editInvoiceBtn = e.target.closest(".edit-invoice-btn");
+            if (editInvoiceBtn) {
+                const invoice = invoices.find(
+                    (inv) => inv.id === editInvoiceBtn.dataset.id
+                );
+                if (invoice) {
+                    const content = await getInvoiceModalHTML(invoice);
+                    openModal(`Sửa Hóa đơn ${invoice.invoiceId}`, content);
+                    setupInvoiceForm();
+                }
+            }
+            const deleteInvoiceBtn = e.target.closest(".delete-invoice-btn");
+            if (deleteInvoiceBtn)
+                deleteData("invoices", deleteInvoiceBtn.dataset.id);
+
+            const removeItemBtn = e.target.closest(".remove-item-btn");
+            if (removeItemBtn) {
+                removeItemBtn.closest(".invoice-item-row").remove();
+            }
+            if (e.target.closest("#modal-add-customer-btn")) {
+                openModal(
+                    "Thêm Khách hàng mới",
+                    getCustomerModalHTML(),
+                    secondaryModalContainer
+                );
+                const form = secondaryModalContainer.querySelector("#customer-form");
+                form.onsubmit = async (event) => {
+                    event.preventDefault();
+                    const customerCode = await generateNewCode("customerCounter", "KH");
+                    const data = {
+                        customerCode: customerCode,
+                        name: form.querySelector("#customerName").value,
+                        phone: form.querySelector("#customerPhone").value,
+                        address: form.querySelector("#customerAddress").value,
+                    };
+                    const newId = await saveData("customers", data);
+                    if (newId) {
+                        document.getElementById("customerSearchInput").value = data.name;
+                        document.getElementById("selectedCustomerId").value = newId;
+                        closeModal(secondaryModalContainer);
+                    }
+                };
+            }
+            if (e.target.matches("#report-filter-buttons .filter-btn")) {
+                currentFilter.reports = {
+                    ...currentFilter.reports,
+                    period: e.target.dataset.period,
+                    page: 1,
+                };
+                document.getElementById("report-start-date").value = "";
+                document.getElementById("report-end-date").value = "";
+                renderReports();
+            }
+            if (e.target.closest("#export-excel-btn")) exportToExcel();
+
+            const exportImageBtn = e.target.closest("#export-invoice-image-btn");
+            if (exportImageBtn) {
+                const invoiceId = exportImageBtn.dataset.id;
+                const invoice = invoices.find((inv) => inv.id === invoiceId);
+                if (invoice) {
+                    const customer = customers.find((c) => c.id === invoice.customerId);
+                    openStoreSelectionModal(invoice, customer);
+                }
+            }
+            const paginationBtn = e.target.closest(".pagination-btn");
+            if (paginationBtn) {
+                const pageKey = paginationBtn.dataset.pageKey;
+                const direction = paginationBtn.dataset.direction;
+                if (direction === "next") currentFilter[pageKey].page++;
+                if (direction === "prev") currentFilter[pageKey].page--;
+
+                if (pageKey === "customers") renderCustomers();
+                if (pageKey === "products") renderProducts();
+                if (pageKey === "invoices") renderInvoices();
+                if (pageKey === "reports") renderReports();
+            }
+            if (e.target.closest("#import-excel-btn")) {
+                document.getElementById("import-excel-input").click();
+            }
+            if (e.target.closest("#download-sample-btn")) {
+                downloadSampleExcel();
+            }
+            if (e.target.closest("#back-to-customers-btn")) {
+                showPage("customers-page");
+            }
+        });
+
+        mainContent.addEventListener("input", async (e) => {
+            if (e.target.id === "customer-search-input") {
+                currentFilter.customers.query = e.target.value;
+                currentFilter.customers.page = 1;
+                renderCustomers();
+            }
+            if (e.target.id === "product-search-input") {
+                currentFilter.products.query = e.target.value;
+                currentFilter.products.page = 1;
+                renderProducts();
+            }
+            if (e.target.id === "invoice-search-input") {
+                currentFilter.invoices.query = e.target.value;
+                currentFilter.invoices.page = 1;
+                renderInvoices();
+            }
+            if (e.target.id === "invoice-date-filter") {
+                currentFilter.invoices.dateFilter = e.target.value;
+                currentFilter.invoices.page = 1;
+                renderInvoices();
+            }
+            if (
+                e.target.id === "report-start-date" ||
+                e.target.id === "report-end-date"
+            ) {
+                const startDate = document.getElementById("report-start-date").value;
+                const endDate = document.getElementById("report-end-date").value;
+                if (startDate && endDate) {
+                    currentFilter.reports = {
+                        period: "custom",
+                        startDate,
+                        endDate,
+                        page: 1,
+                    };
+                    renderReports();
+                }
+            }
+            if (e.target.id.includes("-logo-upload")) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const storeKey = e.target.dataset.store;
+
+                const maxFileSize = 700 * 1024; // 700KB
+                const allowedTypes = ["image/png", "image/jpeg"];
+                if (file.size > maxFileSize) {
+                    showToast("Kích thước tệp không được vượt quá 700KB.", "error");
+                    return;
+                }
+                if (!allowedTypes.includes(file.type)) {
+                    showToast("Chỉ chấp nhận tệp PNG hoặc JPG.", "error");
+                    return;
+                }
+
+                const spinner = document.getElementById(`${storeKey}-logo-spinner`);
+                spinner.classList.remove("hidden");
+
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const dataUrl = event.target.result;
+                        const updateData = { [storeKey]: { logoDataUrl: dataUrl } };
+                        await saveData("settings", updateData, null, "stores");
+                        document.getElementById(`${storeKey}-logo-preview`).src = dataUrl;
+                        showToast("Tải lên logo thành công!");
+                    } catch (error) {
+                        console.error("Error saving logo data URL:", error);
+                        showToast("Lưu logo thất bại.", "error");
+                    } finally {
+                        spinner.classList.add("hidden");
+                        e.target.value = "";
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+            if (e.target.id === "import-excel-input") {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                loadingSpinner.classList.remove("hidden");
+                loadingText.textContent = "Đang nhập sản phẩm...";
+
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const data = new Uint8Array(event.target.result);
+                        const workbook = XLSX.read(data, { type: "array" });
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        const json = XLSX.utils.sheet_to_json(worksheet);
+
+                        if (json.length === 0) {
+                            showToast(
+                                "File excel trống hoặc không đúng định dạng.",
+                                "error"
+                            );
+                            return;
+                        }
+
+                        const batch = writeBatch(db);
+
+                        for (const row of json) {
+                            const productName = row["Tên sản phẩm"];
+                            const costPrice = parseFloat(row["Giá nhập"]);
+                            const sellingPrice = parseFloat(row["Giá bán"]);
+
+                            if (productName && !isNaN(costPrice) && !isNaN(sellingPrice)) {
+                                const productCode = await generateNewCode(
+                                    "productCounter",
+                                    "SP"
+                                );
+                                const newProductRef = doc(
+                                    collection(
+                                        db,
+                                        `artifacts/${appId}/users/${userId}/products`
+                                    )
+                                );
+                                batch.set(newProductRef, {
+                                    productCode,
+                                    name: productName,
+                                    costPrice,
+                                    sellingPrice,
+                                });
+                            }
+                        }
+                        await batch.commit();
+                        showToast(`Đã nhập thành công ${json.length} sản phẩm.`);
+                    } catch (err) {
+                        console.error("Error importing from Excel:", err);
+                        showToast("Có lỗi xảy ra khi nhập file.", "error");
+                    } finally {
+                        loadingSpinner.classList.add("hidden");
+                        loadingText.textContent = "Đang tải...";
+                        e.target.value = ""; // Reset file input
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        mainContent.addEventListener("submit", (e) => {
+            if (e.target.id === "settings-form") {
+                e.preventDefault();
+                const form = e.target;
+                const dataToSave = {};
+                form.querySelectorAll('input[type="text"]').forEach((input) => {
+                    const storeKey = input.dataset.store;
+                    const fieldKey = input.dataset.field;
+                    if (!dataToSave[storeKey]) {
+                        dataToSave[storeKey] = { ...stores[storeKey] }; // Preserve existing data like logoDataUrl
+                    }
+
+                    dataToSave[storeKey][fieldKey] = input.value;
+                });
+                saveData("settings", dataToSave, null, "stores");
+            }
+        });
+
+        modalContainer.addEventListener("submit", async (e) => {
+            if (e.target.id === "customer-form" || e.target.id === "product-form") {
+                e.preventDefault();
+                const form = e.target;
+                const id = form.querySelector("input[type=hidden]").value;
+                let data, collectionName;
+
+                if (form.id === "customer-form") {
+                    collectionName = "customers";
+                    data = {
+                        name: form.querySelector("#customerName").value,
+                        phone: form.querySelector("#customerPhone").value,
+                        address: form.querySelector("#customerAddress").value,
+                    };
+                    if (!id) {
+                        data.customerCode = await generateNewCode(
+                            "customerCounter",
+                            "KH"
+                        );
+                    }
+                } else {
+                    collectionName = "products";
+                    data = {
+                        name: form.querySelector("#productName").value,
+                        costPrice:
+                            parseFloat(form.querySelector("#productCostPrice").value) || 0,
+                        sellingPrice:
+                            parseFloat(form.querySelector("#productSellingPrice").value) ||
+                            0,
+                    };
+                    if (!id) {
+                        data.productCode = await generateNewCode("productCounter", "SP");
+                    }
+                }
+                saveData(collectionName, data, id || null).then(() => closeModal());
+            }
+        });
+
+        // --- INITIAL LOAD ---
+        const savedTheme = localStorage.getItem("theme") || "light";
+        applyTheme(savedTheme);
+        handleAuth();
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Trình Quản lý Hóa đơn",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "VND"
+        }
+      }
+    </script>
+</body>
+
+</html>
