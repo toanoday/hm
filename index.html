@@ -419,15 +419,12 @@
             /* màu nhạt hơn cho nét mảnh */
         }
 
-        #customerSearchResults {
-            background-color: var(--popover);
-            /* đã được định nghĩa */
-            color: var(--popover-foreground);
-        }
-
+        #customerSearchResults,
         .product-search-results {
-            background-color: var(--popover);
-            color: var(--popover-foreground);
+            /* solid background for dropdowns */
+            background-color: var(--card);
+            color: var(--foreground);
+            backdrop-filter: none;
         }
     </style>
 </head>
@@ -991,9 +988,30 @@
                     stores = doc.data();
                 } else {
                     stores = {
-                        store1: { name: "", slogan: "", hotline: "", address: "" },
-                        store2: { name: "", slogan: "", hotline: "", address: "" },
-                        store3: { name: "", slogan: "", hotline: "", address: "" },
+                        store1: {
+                            name: "",
+                            slogan: "",
+                            hotline: "",
+                            address: "",
+                            bankName: "",
+                            bankNumber: "",
+                        },
+                        store2: {
+                            name: "",
+                            slogan: "",
+                            hotline: "",
+                            address: "",
+                            bankName: "",
+                            bankNumber: "",
+                        },
+                        store3: {
+                            name: "",
+                            slogan: "",
+                            hotline: "",
+                            address: "",
+                            bankName: "",
+                            bankNumber: "",
+                        },
                     };
                 }
                 if (document.getElementById("settings-form")) {
@@ -2174,6 +2192,14 @@
                                     <label for="store${i}-address" class="block text-sm font-medium mb-1">Địa chỉ</label>
                                     <input type="text" id="store${i}-address" data-store="store${i}" data-field="address" class="w-full p-2 border rounded-md bg-background border-border">
                                 </div>
+                                <div>
+                                    <label for="store${i}-bankName" class="block text-sm font-medium mb-1">Ngân hàng</label>
+                                    <input type="text" id="store${i}-bankName" data-store="store${i}" data-field="bankName" class="w-full p-2 border rounded-md bg-background border-border">
+                                </div>
+                                <div>
+                                    <label for="store${i}-bankNumber" class="block text-sm font-medium mb-1">STK</label>
+                                    <input type="text" id="store${i}-bankNumber" data-store="store${i}" data-field="bankNumber" class="w-full p-2 border rounded-md bg-background border-border">
+                                </div>
                             </div>
                         </div>
                     `
@@ -2201,6 +2227,10 @@
                     stores[storeKey]?.hotline || "";
                 form.querySelector(`#store${i}-address`).value =
                     stores[storeKey]?.address || "";
+                form.querySelector(`#store${i}-bankName`).value =
+                    stores[storeKey]?.bankName || "";
+                form.querySelector(`#store${i}-bankNumber`).value =
+                    stores[storeKey]?.bankNumber || "";
 
                 const imgPreview = document.getElementById(`store${i}-logo-preview`);
                 if (stores[storeKey] && stores[storeKey].logoDataUrl) {
@@ -2507,7 +2537,7 @@
                     <div class="product-search-wrapper relative">
                         <input type="text" class="item-product-search w-full p-2 border rounded-lg bg-card" placeholder="Tìm sản phẩm..." autocomplete="off">
                         <input type="hidden" class="item-product" value="${item.productId || ""}">
-                        <div class="product-search-results absolute z-20 w-full bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto hidden mt-1"></div>
+                        <div class="product-search-results absolute z-20 w-full bg-card border border-border rounded-md shadow-lg max-h-60 overflow-y-auto hidden mt-1"></div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
@@ -2561,7 +2591,7 @@
                 }" autocomplete="off">
                                 <input type="hidden" id="selectedCustomerId" value="${selectedCustomer ? selectedCustomer.id : ""
                 }">
-                                <div id="customerSearchResults" class="absolute z-20 w-full bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto hidden mt-1"></div>
+                                <div id="customerSearchResults" class="absolute z-20 w-full bg-card border border-border rounded-md shadow-lg max-h-60 overflow-y-auto hidden mt-1"></div>
                             </div>
                             <button type="button" id="modal-add-customer-btn" class="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 h-[42px] aspect-square flex items-center justify-center" title="Thêm khách hàng mới">
                                 <i class="fa-solid fa-plus"></i>
@@ -2705,7 +2735,7 @@
                         results.innerHTML = filtered
                             .map(
                                 (p) =>
-                                    `<div class="p-2 hover:bg-accent cursor-pointer" data-id="${p.id}" data-label="${p.productCode} - ${p.name}">${p.productCode} - ${p.name}</div>`
+                                    `<div class="p-2 hover:bg-accent cursor-pointer" tabindex="0" data-id="${p.id}" data-label="${p.name}">${p.name}</div>`
                             )
                             .join("");
                         results.classList.remove("hidden");
@@ -2724,6 +2754,22 @@
                         results.classList.add("hidden");
                     }
                 });
+                results.addEventListener("keydown", (e) => {
+                    const target = e.target.closest("[data-id]");
+                    if (e.key === "Enter" && target) {
+                        hiddenInput.value = target.dataset.id;
+                        input.value = target.dataset.label;
+                        hiddenInput.dispatchEvent(new Event("change", { bubbles: true }));
+                        results.classList.add("hidden");
+                        input.focus();
+                    }
+                });
+                input.addEventListener("keydown", (e) => {
+                    if (e.key === "ArrowDown") {
+                        const first = results.querySelector("[data-id]");
+                        first && first.focus();
+                    }
+                });
                 document.addEventListener("click", (e) => {
                     if (!row.contains(e.target)) {
                         results.classList.add("hidden");
@@ -2732,7 +2778,7 @@
                 if (hiddenInput.value) {
                     const prod = products.find((p) => p.id === hiddenInput.value);
                     if (prod) {
-                        input.value = `${prod.productCode} - ${prod.name}`;
+                        input.value = prod.name;
                     }
                 }
             };
@@ -2775,7 +2821,7 @@
                     <div class="product-search-wrapper relative">
                         <input type="text" class="item-product-search w-full p-2 border rounded-lg bg-card" placeholder="Tìm sản phẩm..." autocomplete="off">
                         <input type="hidden" class="item-product" value="">
-                        <div class="product-search-results absolute z-20 w-full bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto hidden mt-1"></div>
+                        <div class="product-search-results absolute z-20 w-full bg-card border border-border rounded-md shadow-lg max-h-60 overflow-y-auto hidden mt-1"></div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
@@ -3102,10 +3148,19 @@
                 }
             }
 
+            const qrHTML =
+                showPrices && qrCodeDataURL
+                    ? `<div style="text-align:center; width: 160px;">
+        <img src="${qrCodeDataURL}" alt="QR" style="width: 150px; height: 150px;" crossorigin="anonymous">
+        <div style="font-size:12px; margin-top:4px;">Quét mã để chuyển khoản<br>Nội dung: Mã hóa đơn ${invoice.invoiceId}</div>
+      </div>`
+                    : "";
+
             const totalsHTML = showPrices
                 ? `
-  <div style="margin-top: 20px; display: flex; flex-direction: column; align-items: flex-end;">
-    <div style="display: flex; flex-direction: column; width: 280px;">
+  <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: flex-start;">
+    ${qrHTML}
+    <div style="display: flex; flex-direction: column; width: 280px; align-items: flex-end;">
       <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
         <span><strong>Tổng tiền hàng:</strong></span>
         <span>${(invoice.totalPrice || 0).toLocaleString("vi-VN")} VNĐ</span>
@@ -3262,11 +3317,10 @@
             };
 
             try {
-                const qrCodeDataURL = await generateQRCodeDataURL(invoice.invoiceId);
-                if (!qrCodeDataURL) {
-                    showToast("Không thể tạo mã QR.", "error");
-                    throw new Error("QR Code generation failed");
-                }
+                const qrCodeDataURL =
+                    store.bankName && store.bankNumber
+                        ? `https://img.vietqr.io/image/${store.bankName.toLowerCase()}-${store.bankNumber}.png?amount=${invoice.totalAmount}&addInfo=${invoice.invoiceId}`
+                        : "";
 
                 loadingText.textContent = "Đang tạo hóa đơn đầy đủ...";
                 const htmlWithPrices = getInvoiceHTMLForExport(
